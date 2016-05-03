@@ -1,0 +1,167 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\astroncite{Beveridge and Wiener}{1997}]{multithreadingwin32}
+Beveridge, J. and Wiener, R. (1997).
+\newblock {\em {Multithreading Applications in Win32}}.
+\newblock {Addison-Wesley}, {Reading, Massachussets}.
+
+\bibitem[\protect\astroncite{Bovet and Cesati}{2003}]{linuxKernal}
+Bovet, D. and Cesati, M. (2003).
+\newblock {\em Understanding the Linux Kernel}.
+\newblock O'Reilly, Sabastopol, CA, USA, 2nd edition.
+
+\bibitem[\protect\astroncite{Dawson et~al.}{2009}]{IBM2009}
+Dawson, M., Johnson, G., and Low, A. (2009).
+\newblock {Best practices for using the Java Native Interface}.
+\newblock http://www.ibm.com/developerworks/library/j-jni/.
+\newblock [Date Accessed: 18 March 2016].
+
+\bibitem[\protect\astroncite{Dijkstra}{2002}]{dijkstraSems}
+Dijkstra, E.~W. (2002).
+\newblock {The Origin of Concurrent Programming}.
+\newblock chapter Cooperating Sequential Processes, pages 65--138.
+  Springer-Verlag New York, Inc., New York, NY, USA.
+
+\bibitem[\protect\astroncite{Garg}{2005}]{garg2005concurrent}
+Garg, V.~K. (2005).
+\newblock {\em Concurrent and Distributed Computing in Java}.
+\newblock John Wiley \& Sons, Hoboken, New Jersey.
+
+\bibitem[\protect\astroncite{Goetz et~al.}{2006}]{JavaConcurrencyInPractice}
+Goetz, B., Peierls, T., Bloch, J., Bowbeer, J., Holmes, D., and Lea, D. (2006).
+\newblock {\em Java Concurrency in Practice}.
+\newblock Addison-Wesley.
+
+\bibitem[\protect\astroncite{Hyde}{1999}]{HydeJavaThreadProg}
+Hyde, P. (1999).
+\newblock {\em {Java Thread Programming}}.
+\newblock {Sams Publishing}, Indianapolis, USA.
+
+\bibitem[\protect\astroncite{Lea}{1999}]{LeaConcurrentProgInJavaDesignPrinciplesPatterns}
+Lea, D. (1999).
+\newblock {\em Concurrent Programming in Java: Design Principles and Patterns}.
+\newblock Addison-Wesley, Canada, 2nd edition.
+
+\bibitem[\protect\astroncite{Lea}{2005}]{Lea_java.util.concurrent}
+Lea, D. (2005).
+\newblock The java.util.concurrent {S}ynchronizer {F}ramework.
+\newblock {\em Science of Computer Programming}, 58(3):293 -- 309.
+\newblock Special Issue on Concurrency and Synchonization in Java Programs.
+
+\bibitem[\protect\astroncite{Lee}{2016}]{MSDN_IPCExplanation}
+Lee, T. (2016).
+\newblock {I}nterprocess {C}ommunications.
+\newblock
+  \url{https://msdn.microsoft.com/en-us/library/windows/desktop/aa365574(v=vs.85).aspx}.
+\newblock [Date Accessed: 22 April 2016].
+
+\bibitem[\protect\astroncite{Lewandowski}{1997}]{lewandowski1997interprocess}
+Lewandowski, S.~M. (1997).
+\newblock {Interprocess Communication in UNIX and Windows NT}.
+\newblock {\em Brown University}.
+
+\bibitem[\protect\astroncite{Liang}{1999}]{LiangJNISpecification}
+Liang, S. (1999).
+\newblock {\em {The Java Native Interface: Programmer's Guide and
+  Specification}}.
+\newblock Addison-Wesley Professional, Palo Alto.
+
+\bibitem[\protect\astroncite{{Mac Developer Library}}{2016}]{MAC_API}
+{Mac Developer Library} (2016).
+\newblock {Validating Input and Interprocess Communication}.
+\newblock
+  \url{https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/ValidatingInput.html#//apple_ref/doc/uid/TP40007246-SW3}.
+\newblock [Date Accessed: 29 April 2016].
+
+\bibitem[\protect\astroncite{Magee and Kramer}{2006}]{trainBook}
+Magee, J. and Kramer, J. (2006).
+\newblock {\em {Concurrency: State Models \& Java Programming}}.
+\newblock {John Wiley \& Sons, Ltd}, {Chichester, England}.
+
+\bibitem[\protect\astroncite{MSDN}{2016}]{MSDN_API}
+MSDN (2016).
+\newblock {Microsoft API and Reference Catalog}.
+\newblock \url{https://msdn.microsoft.com/en-us/library/}.
+\newblock [Date Accessed: 22 April 2016].
+
+\bibitem[\protect\astroncite{Oracle}{2016}]{JavaAPI}
+Oracle (2016).
+\newblock {Java Platform Standard Edition 8 API Specification}.
+\newblock \url{http://docs.oracle.com/javase/8/docs/api/}.
+\newblock [Date Accessed: 6 March 2016].
+
+\bibitem[\protect\astroncite{Russinovich et~al.}{2012}]{WinInternalsPart12012}
+Russinovich, M., Solomon, D.~A., and Ionescu, A. (2012).
+\newblock {\em Windows Internals Part 1}.
+\newblock Microsoft Press, 6th edition.
+
+\bibitem[\protect\astroncite{Russinovich and Solomon}{2009}]{WinInt2009}
+Russinovich, M.~E. and Solomon, D.~A. (2009).
+\newblock {\em {Windows Internals Covering Windows Server 2008 and Windows
+  Vista}}.
+\newblock Microsoft Press, Redmond, Washington, 5th edition.
+
+\bibitem[\protect\astroncite{Schauble}{2003}]{semDisadvantages}
+Schauble, C, J.~C. (2003).
+\newblock {Distributed Operating Systems: Disadvantages of Semaphores}.
+\newblock
+  \url{http://www.cs.colostate.edu/~cs551/CourseNotes/ConcurrentConstructs/DisAdvSems.html}.
+\newblock [Date Accessed: 22 March 2016].
+
+\bibitem[\protect\astroncite{Slinn}{2012}]{SlinnJVMAkka}
+Slinn, M. (2012).
+\newblock {Benchmarking JVM Concurrency Options for Java, Scala and Akka}.
+\newblock \url{http://www.infoq.com/articles/benchmarking-jvm}.
+\newblock [Data Accessed: 29 April 2016].
+
+\bibitem[\protect\astroncite{Stallings}{2009}]{OSInternals&DesignPrinciplesStallings}
+Stallings, W. (2009).
+\newblock {\em {Operating Systems: Internals and Design Principles}}.
+\newblock {Pearson Education International}, Upper Saddle River, NJ, 6th
+  edition.
+
+\bibitem[\protect\astroncite{Taboada et~al.}{2013}]{taboada2013javaforHPC}
+Taboada, G.~L., Ramos, S., Exp{\'o}sito, R.~R., Touri{\~n}o, J., and Doallo, R.
+  (2013).
+\newblock Java in the high performance computing arena: Research, practice and
+  experience.
+\newblock {\em Science of Computer Programming}, 78(5):425--444.
+
+\bibitem[\protect\astroncite{Tanenbaum and Bos}{2015}]{modernOS}
+Tanenbaum, A.~S. and Bos, H. (2015).
+\newblock {\em {Modern Operating Systems}}.
+\newblock Pearson, Edinburgh, 4th edition.
+
+\bibitem[\protect\astroncite{Vinoth}{2014}]{IPCWindowsLinkedInSlides}
+Vinoth, R. (2014).
+\newblock {IPC Mechanisms in Windows}.
+\newblock
+  \url{http://www.slideshare.net/mfsi_vinothr/ipc-mechanisms-in-windows}.
+\newblock [Date Accessed: 22 April 2016].
+
+\bibitem[\protect\astroncite{Wells}{2009}]{WellsIPCJava}
+Wells, G. (2009).
+\newblock Interprocess communication in {J}ava.
+\newblock In Arabnia, H., editor, {\em Proc. 2009 International Conference on
+  Parallel and Distributed Processing Techniques and Applications (PDPTA'09)},
+  pages 407--413, Las Vegas. CSREA Press.
+
+\bibitem[\protect\astroncite{Wells}{2010}]{WellsIPCMultiProc}
+Wells, G. (2010).
+\newblock Extending {J}ava's communication mechanisms for multicore processors.
+\newblock In {\em 8th International Conference on the Principles and Practice
+  of Programming in Java (PPPJ 2010)}, Vienna, Austria.
+\newblock (Poster).
+
+\bibitem[\protect\astroncite{Wells}{2013}]{WellsEfficientIPCJava}
+Wells, G.~C. (2013).
+\newblock {Efficient Interprocess Communication in Java}.
+\newblock pages 1--7.
+
+\bibitem[\protect\astroncite{Wisniewski et~al.}{1994}]{spinlocks1994}
+Wisniewski, R.~W., Kontothanassis, L., and Scott, M.~L. (1994).
+\newblock Scalable spin locks for multiprogrammed systems.
+\newblock In {\em Parallel Processing Symposium, 1994. Proceedings., Eighth
+  International}, pages 583--589. IEEE.
+
+\end{thebibliography}
