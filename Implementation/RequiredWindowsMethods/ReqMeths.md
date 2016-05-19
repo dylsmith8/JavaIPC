@@ -9,3 +9,5 @@
 
 * `CreatePipe()` --> create an anon pipe
 * `CreateNamedPipe()` --> create named pipe
+
+### Shared memory

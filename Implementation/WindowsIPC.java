@@ -1,6 +1,8 @@
 /**   This class creates the Windows IPC functions using a JNI shared library
   *   @author Dylan Smith
   *   Start Date: 5 May 2016
+  *
+  *   Follows Linux style of error reporting to simplify error reporting
   */
 public class WindowsIPC {
   /*
@@ -30,9 +32,18 @@ public class WindowsIPC {
   public native int createNamedPipe(String name);
 
   /*
-  Main method. Conduct unit tests here (junit)
+  Load the native library
   */
-  public static void Main(String[] args) {
+  static {
+    System.loadLibrary("WindowsIPC");
+  }
+
+  /*
+  Main method. Conduct tests here
+  */
+  public static void main(String[] args) {
       WindowsIPC winIPC = new WindowsIPC();
+
+      System.out.println("Run Sucessful\n");
   }
 } // class
