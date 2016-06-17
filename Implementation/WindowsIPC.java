@@ -1,7 +1,7 @@
 /**   This class creates the Windows IPC functions using a JNI shared library
   *   @author Dylan Smith
   *   Start Date: 5 May 2016
-  *
+  *   Modified: 17 June 2016
   *   Follows Linux style of error reporting to simplify error reporting
   */
 public class WindowsIPC {
@@ -28,7 +28,7 @@ public class WindowsIPC {
   public native int createPipe(String name);
 
   /*
-  Create a server named pipe
+  Create a server process for a named pipe
   */
   public native int createNamedPipeServer();
 
@@ -63,8 +63,8 @@ public class WindowsIPC {
       else
         System.out.println("Error occured creating pipe server\n");
 
-      // create a named pipe client that sends a message 
-      if (winIPC.createNamedPipeClient("Some Name") != -1)
+      // create a named pipe client that sends a message
+      if (winIPC.createNamedPipeClient("Some Message") != -1)
         System.out.println("Named pipe client created successfully\n");
       else
         System.out.println("Error occured while creating client\n");

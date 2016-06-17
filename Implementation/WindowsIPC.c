@@ -35,7 +35,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
       PIPE_ACCESS_DUPLEX,
       PIPE_TYPE_MESSAGE |
       PIPE_READMODE_MESSAGE |
-      PIPE_NOWAIT,
+      PIPE_NOWAIT,                    // forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,
       1024,
       1024,
@@ -46,8 +46,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
     // error creating server
     if (pipeHandle == INVALID_HANDLE_VALUE) retval = -1;
     else printf("Server created successfully\n");
-
-// WAIT FOR CLIENT TO CONNECTED
 
     // waits for a client -- currently in ASYC mode so returns immediately
     jboolean clientConnected = ConnectNamedPipe(pipeHandle, NULL);
@@ -107,8 +105,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     // send a message
     jboolean sendMessageResult = WriteFile (
       pipeHandle,
-      "This is a message\n",
-      12,
+      "This is a message\n", // hardcoded message for now...
+      12, // length of a message 
       &cbBytes,
       NULL
     );
