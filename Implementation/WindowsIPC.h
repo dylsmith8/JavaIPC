@@ -25,10 +25,18 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
 
 /*
  * Class:     WindowsIPC
- * Method:    createNamedPipe
+ * Method:    createNamedPipeServer
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createNamedPipeClient
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipe
+JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus
