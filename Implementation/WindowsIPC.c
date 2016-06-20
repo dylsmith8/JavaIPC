@@ -25,7 +25,7 @@ Implementation of native functions
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj) {
 
-    jint retval = 1;
+    jint retval = 0;
     HANDLE pipeHandle; // handle for the named pipe
     char buffer[1024]; // data buffer of 1K
     DWORD cbBytes;
@@ -80,13 +80,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
-  (JNIEnv * env, jobject obj, jstring str) {
+  (JNIEnv * env, jobject obj, jstring message) {
 
-    jint retval = 1;
+    jint retval = 0;
     HANDLE pipeHandle;
     char buffer [1024]; // 1K
     DWORD cbBytes;
 
+    // read the message
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    // check the string
+    if (str == NULL) return -1; // out of memory
+    printf("Message sent to server: %s", str);
+
+    // assign the pipe handle
     pipeHandle = CreateFile(
         namedPipe,
         GENERIC_READ | //allows read and write access
@@ -105,16 +113,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     // send a message
     jboolean sendMessageResult = WriteFile (
       pipeHandle,
-      "This is a message\n", // hardcoded message for now...
-      12, // length of a message 
+      str, // hardcoded message for now...
+      sizeof(str), // length of a message
       &cbBytes,
       NULL
     );
 
-    if (!sendMessageResult || cbBytes != 12) retval = -1;
+
+    // check if message write was successful
+    if (!sendMessageResult || cbBytes == 0) retval = -1;
     else printf("write to the server successful\n");
 
+    // free memory allocated to the message
+    (*env)->ReleaseStringUTFChars(env, message, str);
     CloseHandle(pipeHandle);
+
     return retval;
   }
 
