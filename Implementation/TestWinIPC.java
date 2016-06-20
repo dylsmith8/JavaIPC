@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Scanner;
 public class TestWinIPC {
   public static void main (String[] args)
     {
@@ -13,15 +14,23 @@ public class TestWinIPC {
         Thread t = new Thread(new NamedPipeThread(pipeName));
         t.start();
         try {
-          PrintWriter pw = new PrintWriter(new FileOutputStream(pipeName));
-          pw.println("Hello Pipe");
-          System.out.println("Wrote to named pipe OK");
-          pw.close();
+          System.out.println("opening pipe for input");
+          BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pipeName)));
+          System.out.println("waiting to read");
+          String line = br.readLine();
+          System.out.println("Read from pipe OK: " + line);
+          br.close();
+
+          Scanner sc = new Scanner (System.in);
+          String x = sc.nextLine();
+
+          winIPC.closeNamedPipe();
         }
         catch (IOException exc) {
           System.err.println("I/O Error: " + exc);
           exc.printStackTrace();
         }
+
       }
 } //main
 
@@ -34,10 +43,10 @@ private static class NamedPipeThread implements Runnable {
 
     public void run () {
      try {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pipeName)));
-        String line = br.readLine();
-        System.out.println("Read from pipe OK: " + line);
-        br.close();
+         PrintWriter pw = new PrintWriter(new FileOutputStream(pipeName));
+         pw.println("Hello Pipe");
+         System.out.println("Wrote to named pipe OK");
+         pw.close();
       }
       catch (IOException exc) {
           System.err.println("I/O Error: " + exc);
