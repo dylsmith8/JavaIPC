@@ -46,9 +46,11 @@ public class WindowsIPC {
   /*
     close the handle to the named pipe created by the server
   */
-  public native void closeNamedPipe();
+  public native int closeNamedPipe();
 
 
+  public native String getNamedPipeMessage();
+  
   /*
   Load the native library
   */
@@ -62,7 +64,7 @@ public class WindowsIPC {
   public static void main(String[] args) {
       WindowsIPC winIPC = new WindowsIPC();
 
-
+/*
       // create a named pipe server
       if (winIPC.createNamedPipeServer("\\\\.\\Pipe\\JavaPipe") != -1)
         System.out.println("Named pipe server created successfully\n");
@@ -76,13 +78,12 @@ public class WindowsIPC {
         System.out.println("Error occured while creating client\n");
 
       // close the pipe handle
-      /*
       if (winIPC.closeNamedPipe() != -1)
         System.out.println("Named pipe closed successfully\n");
       else
         System.out.println("Error closing named pipe\n");
 
-        */
+*/
       System.out.println("Run Successful\n");
   }
 } // class
