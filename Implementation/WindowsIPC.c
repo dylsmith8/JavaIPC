@@ -39,7 +39,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
       PIPE_ACCESS_DUPLEX,
       PIPE_TYPE_BYTE |
       PIPE_READMODE_BYTE |
-      PIPE_NOWAIT,                    // forces a return, so thread doesn't block
+      PIPE_WAIT,                    // forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,
       1024,
       1024,
