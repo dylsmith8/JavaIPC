@@ -18,6 +18,7 @@ Implementation of native functions
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 HANDLE pipeHandle;
+jstring message;
 
 /*
  * Class:     WindowsIPC
