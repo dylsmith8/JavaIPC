@@ -17,6 +17,7 @@ Implementation of native functions
 #define namedPipe "\\\\.\\Pipe\\JavaPipe"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
+HANDLE pipeHandle;
 
 /*
  * Class:     WindowsIPC
@@ -27,7 +28,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
 
     jint retval = 0;
-    HANDLE pipeHandle; // handle for the named pipe
     char buffer[1024]; // data buffer of 1K
     DWORD cbBytes;
 
@@ -37,13 +37,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
     pipeHandle = CreateNamedPipe (
       nameOfPipe,                      // name of the pipe
       PIPE_ACCESS_DUPLEX,
-      PIPE_TYPE_MESSAGE |
-      PIPE_READMODE_MESSAGE |
-      PIPE_NOWAIT,                    // forces a return, so thread doesn't block
+      PIPE_TYPE_BYTE |
+      PIPE_READMODE_BYTE |
+      PIPE_WAIT,                    // forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,
       1024,
       1024,
-      NMPWAIT_USE_DEFAULT_WAIT,
+      0,
       NULL
     );
 
@@ -90,7 +90,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv * env, jobject obj, jstring message) {
 
     jint retval = 0;
-    HANDLE pipeHandle;
     char buffer [1024]; // 1K
     DWORD cbBytes;
 
@@ -143,23 +142,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
  * Method:    closeNamedPipe
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_closeNamedPipe
+JNIEXPORT void JNICALL Java_WindowsIPC_closeNamedPipe
   (JNIEnv * env, jobject obj) {
-
-    jint retval = 0;
-    HANDLE pipeHandle;
-    pipeHandle = CreateFile(
-        namedPipe,
-        GENERIC_READ | //allows read and write access
-        GENERIC_WRITE,
-        0,
-        NULL,
-        OPEN_EXISTING, // opens the existing named pipe (define at top of file)
-        0,
-        NULL
-    );
     CloseHandle(pipeHandle);
-    return retval;
+    jboolean disconnect = DisconnectNamedPipe(pipeHandle);
   }
 void main() {
 } // main
