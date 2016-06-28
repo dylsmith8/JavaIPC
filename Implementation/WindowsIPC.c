@@ -1,7 +1,7 @@
 /*
 Author: Dylan Smith
 Date Created: 19 May 2016
-Date Modified: 17 June 2016
+Date Modified: 28 June 2016
 
 Implementation of native functions
 */
@@ -14,28 +14,37 @@ Implementation of native functions
 
 #include "WindowsIPC.h"
 
-#define namedPipe "\\\\.\\Pipe\\JavaPipe"
-
+const jbyte *nameOfPipe; // global variable representing the named pipe
+HANDLE pipeHandle;
 
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
-  (JNIEnv * env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
+  (JNIEnv * env, jobject obj, jstring pipeName) {
 
-    jint retval = 1;
-    HANDLE pipeHandle; // handle for the named pipe
-    char buffer[1024]; // data buffer of 1K
+    jint retval = 0;
+    char buffer[1024]; // data buffer of 1K. This will store the data that the server receives from the client
     DWORD cbBytes;
 
+    jstring message; // message received from client that connects
+
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    puts(error);
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+    // Get the name of the pipe
+    nameOfPipe = (*env)->GetStringUTFChars(env, pipeName, NULL);
+
     pipeHandle = CreateNamedPipe (
-      namedPipe,                      // name of the pipe
+      nameOfPipe,                      // name of the pipe
       PIPE_ACCESS_DUPLEX,
       PIPE_TYPE_MESSAGE |
       PIPE_READMODE_MESSAGE |
-      PIPE_NOWAIT,
+      PIPE_WAIT,                    // forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,
       1024,
       1024,
@@ -44,36 +53,47 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
     );
 
     // error creating server
-    if (pipeHandle == INVALID_HANDLE_VALUE) retval = -1;
-    else printf("Server created successfully\n");
+    if (pipeHandle == INVALID_HANDLE_VALUE)  {
+      return errorForJavaProgram;
+    }
+    else {
+      printf("Server created successfully: name:%s\n", nameOfPipe);
 
-// WAIT FOR CLIENT TO CONNECTED
+        // waits for a client -- currently in ASYC mode so returns immediately
+      jboolean clientConnected = ConnectNamedPipe(pipeHandle, NULL);
 
-    // waits for a client -- currently in ASYC mode so returns immediately
-    jboolean clientConnected = ConnectNamedPipe(pipeHandle, NULL);
 
-    /*
+      // HANDLES THE READING OF A MESSAGE!
+      // error with client connecting
+      if (!clientConnected) {
+        return errorForJavaProgram;
+      }
+      else {
+        printf("Client process connected successfully\n");
 
-    // error with client connecting
-    if (!clientConnected) retval = -1;
-    else printf("Client process connected successfully\n");
+        jboolean resultOfPipeRead = ReadFile(
+              pipeHandle, // specify pipe to read from
+              buffer, // buffer to read from
+              sizeof(buffer), // specify the buffer's size
+              &cbBytes, // deref the bytes
+              NULL
+            );
 
-    jboolean resultOfPipeRead = ReadFile(
-          pipeHandle, // specify pipe to read from
-          buffer, // buffer to read from
-          sizeof(buffer), // specify the buffer's size
-          &cbBytes, // deref the bytes
-          NULL
-        );
+        if (!resultOfPipeRead) {
+          return errorForJavaProgram;
+        }
+        else {
+          printf("Message read successfully:\n");
+          CloseHandle(pipeHandle);
+        // free the memory allocated to the string
+         (*env)->ReleaseStringUTFChars(env, pipeName, nameOfPipe);
+        }
+      }
+    }
 
-    // error read bytes
-
-    if (!resultOfPipeRead || cbBytes == 12) retval = -1;
-    else printf("Message read successfully\n");
-
-    CloseHandle(pipeHandle);
-    */
-    return retval;
+   puts(buffer);
+   message = (*env)->NewStringUTF(env, buffer);
+   return message;
   }
 
 /*
@@ -82,15 +102,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
-  (JNIEnv * env, jobject obj, jstring str) {
+  (JNIEnv * env, jobject obj, jstring message) {
 
-    jint retval = 1;
-    HANDLE pipeHandle;
+    jint retval = 0;
     char buffer [1024]; // 1K
     DWORD cbBytes;
 
+    // read the message
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    // check the string
+    if (str == NULL) return -1; // out of memory
+
+    // assign the pipe handle
     pipeHandle = CreateFile(
-        namedPipe,
+        "\\\\.\\Pipe\\JavaPipe",
         GENERIC_READ | //allows read and write access
         GENERIC_WRITE,
         0,
@@ -101,21 +127,41 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     );
 
     // check if connected to the server process
-    if (pipeHandle == INVALID_HANDLE_VALUE) retval = -1;
+    if (pipeHandle == INVALID_HANDLE_VALUE) {
+      retval = -1;
+    }
     else printf ("CreateFile successful\n");
 
     // send a message
     jboolean sendMessageResult = WriteFile (
-      pipeHandle,
-      "This is a message\n",
-      12,
+     pipeHandle,
+      str, // hardcoded message to send to the client
+      strlen(str) + 1, // length of a message
       &cbBytes,
       NULL
     );
 
-    if (!sendMessageResult || cbBytes != 12) retval = -1;
-    else printf("write to the server successful\n");
 
+    // check if message write was successful
+    if (!sendMessageResult || cbBytes != strlen(str) + 1) {
+      retval = -1;
+    }
+
+    // free memory allocated to the message
+    (*env)->ReleaseStringUTFChars(env, message, str);
+    CloseHandle(pipeHandle);
+
+    return retval;
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    closeNamedPipe
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_closeNamedPipe
+  (JNIEnv * env, jobject obj) {
+    jint retval = 0;
     CloseHandle(pipeHandle);
     return retval;
   }
