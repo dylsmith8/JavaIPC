@@ -165,5 +165,15 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
 
   } // createpipe
 
+/*
+ * Class:     WindowsIPC
+ * Method:    createMailslot
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
+  (JNIEnv * env, jobject obj, jstring mailslotName) {
+
+  } //createMailslot
+
 void main() {
 } // main
