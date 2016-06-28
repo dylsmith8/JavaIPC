@@ -14,9 +14,13 @@ Implementation of native functions
 
 #include "WindowsIPC.h"
 
+#define mailslot "\\\\.\\mailslot\\javaMailslot"
+
 const jbyte *nameOfPipe; // global variable representing the named pipe
-HANDLE pipeHandle;
+HANDLE pipeHandle;  // global handle for the name pipe
 jstring message;
+
+HANDLE mailslotHandle; // global handle representing the mailslot
 
 /*
  * Class:     WindowsIPC
@@ -162,7 +166,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
   (JNIEnv * env, jobject obj, jstring pipeName) {
-
+    return -1;
   } // createpipe
 
 /*
@@ -173,7 +177,90 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
 JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
   (JNIEnv * env, jobject obj, jstring mailslotName) {
 
-  } //createMailslot
+    jint retval = 0;
+    char buffer[1024]; // buffer that will store the message dumped in the slot
+    DWORD cbBytes; // bytes written
+    jboolean result; // result of read
+
+    mailslotHandle = CreateMailslot (
+      mailslot,  // name
+      1024,      // buffer size of 1k
+      MAILSLOT_WAIT_FOREVER,
+      NULL
+    );
+
+    // check if mailslot was created sucessfully
+    if (mailslotHandle == INVALID_HANDLE_VALUE) return -1;
+    else printf("Mailslot created successfully");
+
+    // block till a connection is received
+    while (TRUE) {
+      result = ReadFile (
+        mailslotHandle,
+        buffer,
+        sizeof(buffer),
+        &cbBytes,
+        NULL
+      );
+
+      if (!result || 0 == cbBytes) {
+        CloseHandle(mailslotHandle);
+        return -1;
+      }
+      else printf("read was successful");
+    }
+
+  CloseHandle(mailslotHandle);
+  return retval;
+} //createMailslot
+
+/*
+ * Class:     WindowsIPC
+ * Method:    connectToMailslot
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    jint retval = 0;
+    char buffer[100] = " this is a message";
+    DWORD cbBytes;
+    jboolean result;  // stores the result of the WriteFile
+
+    // connect to existing mailslot
+    mailslotHandle = CreateFile (
+      mailslot,   // name of mailslot
+      GENERIC_WRITE,
+      FILE_SHARE_READ,
+      NULL,
+      OPEN_EXISTING,
+      FILE_ATTRIBUTE_NORMAL,
+      NULL
+    );
+
+    // check if connection successful
+    if (mailslotHandle == INVALID_HANDLE_VALUE) return -1;
+    else printf("Connected to mailslot successfully");
+
+    // dump a message in the mailslot
+
+    result = WriteFile (
+      mailslotHandle,
+      buffer,
+      strlen(buffer) + 1,
+      &cbBytes,
+      NULL
+    );
+
+    // check dump was successful
+
+    if (!result || cbBytes != strlen(buffer) + 1) return -1;
+    else printf("Dump successful");
+
+    CloseHandle(mailslotHandle);
+    return retval;
+  } // connect to mailslot
+
 
 void main() {
 } // main

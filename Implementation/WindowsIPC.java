@@ -17,6 +17,11 @@ public class WindowsIPC {
   */
   public native int createMailslot(String name);
 
+  /*
+    native method connects to an exisiting mailslot
+  */
+  public native int connectToMailslot(String message);
+
 
   /*
     Calls CreatePipe()
@@ -53,6 +58,11 @@ public class WindowsIPC {
   */
   public static void main(String[] args) {
       WindowsIPC winIPC = new WindowsIPC();
+
+      if (winIPC.createMailslot("name") == 0)
+        System.out.println("Mailslot created successfully");
+      else
+        System.out.println("Error creating mailslot");
 
       System.out.println("Build Successful\n");
   }
