@@ -155,17 +155,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     return retval;
   }
 
-/*
- * Class:     WindowsIPC
- * Method:    closeNamedPipe
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_WindowsIPC_closeNamedPipe
-  (JNIEnv * env, jobject obj) {
-    jint retval = 0;
-    CloseHandle(pipeHandle);
-    return retval;
-  }
 
 void main() {
 } // main
