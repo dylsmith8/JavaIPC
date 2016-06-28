@@ -155,6 +155,15 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     return retval;
   }
 
+/*
+ * Class:     WindowsIPC
+ * Method:    createPipe
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
+  (JNIEnv * env, jobject obj, jstring pipeName) {
+
+  } // createpipe
 
 void main() {
 } // main
