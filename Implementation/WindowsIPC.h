@@ -10,9 +10,17 @@ extern "C" {
 /*
  * Class:     WindowsIPC
  * Method:    createMailslot
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    connectToMailslot
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
+JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -38,22 +46,6 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     WindowsIPC
- * Method:    closeNamedPipe
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_WindowsIPC_closeNamedPipe
-  (JNIEnv *, jobject);
-
-/*
- * Class:     WindowsIPC
- * Method:    getNamedPipeMessage
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_getNamedPipeMessage
-  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }
