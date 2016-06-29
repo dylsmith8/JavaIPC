@@ -162,7 +162,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
   (JNIEnv * env, jobject obj, jstring pipeName) {
-
+    return -1;
   } // createpipe
 
 void main() {
