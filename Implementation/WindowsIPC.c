@@ -183,32 +183,32 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
     jboolean result; // result of read
 
     mailslotHandle = CreateMailslot (
-      mailslot,  // name
-      1024,      // buffer size of 1k
-      MAILSLOT_WAIT_FOREVER,
+      mailslot,                 // name
+      1024,                     // buffer size of 1k
+      MAILSLOT_WAIT_FOREVER,    //
       NULL
     );
 
     // check if mailslot was created sucessfully
     if (mailslotHandle == INVALID_HANDLE_VALUE) return -1;
-    else printf("Mailslot created successfully");
+    else printf("Mailslot created successfully\n");
 
     // block till a connection is received
-    while (TRUE) {
-      result = ReadFile (
-        mailslotHandle,
-        buffer,
-        sizeof(buffer),
-        &cbBytes,
-        NULL
-      );
+    result = ReadFile (
+      mailslotHandle,
+      buffer,
+      sizeof(buffer),
+      &cbBytes,
+      NULL
+    );
 
-      if (!result || 0 == cbBytes) {
-        CloseHandle(mailslotHandle);
-        return -1;
-      }
-      else printf("read was successful");
+    if (!result || 0 == cbBytes) {
+      CloseHandle(mailslotHandle);
+      return -1;
     }
+    else printf("read was successful\n");
+
+  printf("Native: %s", buffer);
 
   CloseHandle(mailslotHandle);
   return retval;
@@ -255,7 +255,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
     // check dump was successful
 
     if (!result || cbBytes != strlen(buffer) + 1) return -1;
-    else printf("Dump successful");
+    else printf("Dump successful\n");
 
     CloseHandle(mailslotHandle);
     return retval;

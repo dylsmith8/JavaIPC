@@ -1,3 +1,5 @@
+# Named Pipes
+
 I initially had some problems implementing named pipes using Java's standard I/O streams such as
 `FileInputStream` and `FileOutputStream`. Once the named pipe was created, I tried to access the
 the pipe using the OS's file system (as can be done in Linux) using `FileOutputStream` and
@@ -28,4 +30,8 @@ I included timing code to calculate the time it took for a message to be sent fr
 to another (i.e. from one Java program to the other). I ran the code ten times and collected the
 timing results. The average time it took to send a message was a respectable 623650,6 ns
 
-fdfsdfsd
+# Mailslots
+
+#### Refs
+
+1. http://www.winsocketdotnetworkprogramming.com/winsock2programming/winsock2advancedmailslot14a.html
