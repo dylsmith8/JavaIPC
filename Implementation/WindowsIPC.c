@@ -1,7 +1,7 @@
 /*
 Author: Dylan Smith
 Date Created: 19 May 2016
-Date Modified: 28 June 2016
+Last Modified: 29 June 2016
 
 Implementation of native functions
 */
@@ -10,13 +10,18 @@ Implementation of native functions
 #include <stdio.h>
 #include <errno.h>
 
-#include "windows.h"
+#include "windows.h" // windows API
 
-#include "WindowsIPC.h"
+#include "WindowsIPC.h" // native methods
+
+#define BUFFER_SIZE 1024 // 1K buffer size
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
-HANDLE pipeHandle;
+const jbyte *nameMailslot; // global variable reprenting the mailslot name
+HANDLE pipeHandle;  // global handle for the name pipe
 jstring message;
+
+HANDLE mailslotHandle; // global handle representing the mailslot
 
 /*
  * Class:     WindowsIPC
@@ -27,7 +32,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
 
     jint retval = 0;
-    char buffer[1024]; // data buffer of 1K. This will store the data that the server receives from the client
+    char buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
     DWORD cbBytes;
 
     jstring message; // message received from client that connects
@@ -47,8 +52,8 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
       PIPE_READMODE_MESSAGE |
       PIPE_WAIT,                    // forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,
-      1024,
-      1024,
+      BUFFER_SIZE,
+      BUFFER_SIZE,
       NMPWAIT_USE_DEFAULT_WAIT,
       NULL
     );
@@ -106,7 +111,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv * env, jobject obj, jstring message) {
 
     jint retval = 0;
-    char buffer [1024]; // 1K
+    char buffer [BUFFER_SIZE]; // 1K
     DWORD cbBytes;
 
     // read the message
@@ -157,15 +162,118 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
 
 /*
  * Class:     WindowsIPC
- * Method:    closeNamedPipe
- * Signature: ()I
+ * Method:    createPipe
+ * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_closeNamedPipe
-  (JNIEnv * env, jobject obj) {
+JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
+  (JNIEnv * env, jobject obj, jstring pipeName) {
+    return -1;
+  } // createpipe
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createMailslot
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
+  (JNIEnv * env, jobject obj, jstring mailslotName) {
+
     jint retval = 0;
-    CloseHandle(pipeHandle);
+    char buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
+    DWORD cbBytes; // bytes written
+    jboolean result; // result of read
+
+
+    jstring message; // message received from mailslot client
+
+    // used to display an error if failure occurs
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    puts(error);
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+    nameMailslot = (*env)->GetStringUTFChars(env, mailslotName, NULL);
+
+    mailslotHandle = CreateMailslot (
+      nameMailslot,              // name
+      BUFFER_SIZE,                     // buffer size of 1k
+      MAILSLOT_WAIT_FOREVER,    //
+      NULL
+    );
+
+    // check if mailslot was created sucessfully
+    if (mailslotHandle == INVALID_HANDLE_VALUE) return errorForJavaProgram;
+    else printf("Mailslot created successfully\n");
+
+    // block till a connection is received
+    result = ReadFile (
+      mailslotHandle,
+      buffer,
+      sizeof(buffer),
+      &cbBytes,
+      NULL
+    );
+
+    if (!result || 0 == cbBytes) {
+      CloseHandle(mailslotHandle);
+      return errorForJavaProgram;
+    }
+    else printf("read was successful\n");
+
+  CloseHandle(mailslotHandle);
+
+  puts(buffer);
+  message = (*env)->NewStringUTF(env, buffer);
+
+  return message;
+} //createMailslot
+
+/*
+ * Class:     WindowsIPC
+ * Method:    connectToMailslot
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    jint retval = 0;
+    //char buffer[100] = " this is a message";
+    DWORD cbBytes;
+    jboolean result;  // stores the result of the WriteFile
+
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    // connect to existing mailslot
+    mailslotHandle = CreateFile (
+      "\\\\.\\mailslot\\javaMailslot",   // name of mailslot
+      GENERIC_WRITE,
+      FILE_SHARE_READ,
+      NULL,
+      OPEN_EXISTING,
+      FILE_ATTRIBUTE_NORMAL,
+      NULL
+    );
+
+    // check if connection successful
+    if (mailslotHandle == INVALID_HANDLE_VALUE) return -1;
+    else printf("Connected to mailslot successfully");
+
+    // dump a message in the mailslot
+    result = WriteFile (
+      mailslotHandle,
+      str,
+      strlen(str) + 1,
+      &cbBytes,
+      NULL
+    );
+
+    // check dump was successful
+    if (!result || cbBytes != strlen(str) + 1) return -1;
+    else printf("Dump successful\n");
+
+    CloseHandle(mailslotHandle);
     return retval;
-  }
+  } // connect to mailslot
 
 void main() {
 } // main

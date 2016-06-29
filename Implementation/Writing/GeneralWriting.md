@@ -1,3 +1,5 @@
+# Named Pipes
+
 I initially had some problems implementing named pipes using Java's standard I/O streams such as
 `FileInputStream` and `FileOutputStream`. Once the named pipe was created, I tried to access the
 the pipe using the OS's file system (as can be done in Linux) using `FileOutputStream` and
@@ -28,4 +30,55 @@ I included timing code to calculate the time it took for a message to be sent fr
 to another (i.e. from one Java program to the other). I ran the code ten times and collected the
 timing results. The average time it took to send a message was a respectable 623650,6 ns
 
-fdfsdfsd
+# Mailslots
+
+#### Refs
+
+1. http://www.winsocketdotnetworkprogramming.com/winsock2programming/winsock2advancedmailslot14a.html
+
+The implementation of mailslots was relatively straightforward with little issue.
+This mechanism is also synchronous in nature, with the native method `createMailslot`
+only returning once a client connects to the created slot. Mailslots are
+also fundamentally built upon a client server model with a 'server' process creating
+the slot and a client process connecting and depositing some information into the slot
+which the server can then use as needed.
+
+
+The method in which I implemented the mailslots was similar to that of the named pipes
+implementation. `createMailslot` returns a string which is the message that the client
+process deposits in the slot. The function caters for a slot with a buffer size of 1 K.
+The function takes a parameter that specifies the name of the mailslot which the client
+uses to connect. The `MAILSLOT_WAIT_FOREVER` flag causes the thread to block - i.e. the
+function does not return until a client connects correctly. Code is included that
+ensures the client connected successfully, else an error is reported when the function returns.
+The Windows API function `ReadFile` checks and reads what was deposited into the slot.
+The message is stored in the buffer and returns as a JNI `jstring` which the Java program
+can understand. At the end of the method, the function releases resources used by JNI strings
+and closes the handle to the slot.
+
+
+The mailslot client was also designed in a similar fashion to that of the named pipes
+client function. The function is called `connectToMailslot` and takes the message that
+must be deposited into an **existing** mailslot as an argument. The message in Java is
+converted into a `jbyte` and fed to the Windows API function `WriteFile`. Prior to this,
+`CreateFile` is used to connect to the mailslot by returning a Windows handle to it.
+This handle is then also used in the `WriteFile` operation. Some error checking code is in place
+to ensure that the message was deposited correctly into the slot; if not an error is returned
+(-1). At the end of the function, the handle to the mailslot is closed and the function returns.
+
+
+Mailslots were tested by creating two separate Java programs representing the server and client.
+Essentially two processes that wanted to communicate with the 'server' being the process
+that receives data and the 'client' being the process that wants to send data (i.e.
+initiate some form of communication). The server process calls the native method `createMailslot`
+by invoking it using an object of the `WindowsIPC` class. The message that is receives in its
+slot is stored in a simple Java string variable. The client process also uses an object of
+`WindowsIPC` and invokes `connectToMailslot`, specifying an argument as a message. The message
+sends correctly once the client connects successfully. The message is then received correctly
+at the 'server' end and is simply printed out.
+
+
+I implemented some timing code to test the efficiency of the slot. I tested mailslot
+by executing them ten times and recording the average time it took to send
+a message. A client averages 909970,4 ns to connect to a slot and deposit a message. This
+is almost a third slower than named pipes. 
