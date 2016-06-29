@@ -15,7 +15,7 @@ public class WindowsIPC {
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa365147(v=vs.85).aspx
     http://stackoverflow.com/questions/13060626/mailslot-write-sending-same-thing-three-times-c-c
   */
-  public native int createMailslot(String name);
+  public native String createMailslot(String name);
 
   /*
     native method connects to an exisiting mailslot
@@ -59,11 +59,6 @@ public class WindowsIPC {
   */
   public static void main(String[] args) {
       WindowsIPC winIPC = new WindowsIPC();
-
-      if (winIPC.createMailslot("name") == 0)
-        System.out.println("Mailslot created successfully");
-      else
-        System.out.println("Error creating mailslot");
 
       System.out.println("Build Successful\n");
   }

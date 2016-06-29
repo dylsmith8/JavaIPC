@@ -10,9 +10,9 @@ extern "C" {
 /*
  * Class:     WindowsIPC
  * Method:    createMailslot
- * Signature: (Ljava/lang/String;)I
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
   (JNIEnv *, jobject, jstring);
 
 /*

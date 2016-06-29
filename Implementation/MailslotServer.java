@@ -9,9 +9,7 @@ public class MailslotServer {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
 
-    if (winIPC.createMailslot("string") == 0)
-      System.out.println("Java: Mailslot created successfully");
-    else
-      System.out.println("Mailslot creation failed");
+    String message = winIPC.createMailslot("\\\\.\\mailslot\\javaMailslot");
+    System.out.println("Message received in Java:" + message);
   } // main
 } // class mailslot server
