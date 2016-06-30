@@ -1,7 +1,7 @@
 /*
 Author: Dylan Smith
 Date Created: 19 May 2016
-Last Modified: 29 June 2016
+Last Modified: 30 June 2016
 
 Implementation of native functions
 */
