@@ -1,8 +1,8 @@
 /**   This class creates the Windows IPC functions using a JNI shared library
-  *   @author Dylan Smith
+  *   Author Dylan Smith
   *   Start Date: 5 May 2016
-  *   Modified: 28 June 2016
-  *   Follows Linux style of error reporting to simplify error reporting
+  *   Modified: 30 June 2016
+  *   Follows Linux style of error reporting
   */
 public class WindowsIPC {
 
@@ -10,8 +10,7 @@ public class WindowsIPC {
   /*
     Calls CreateMailslot()
     Create a Windows Mailslot. Actual C implementation returns a handle.
-    This function will return -1 if an error occured or 1 if the slot
-    was created successfully.
+    Returns a string representing what was dumped in the mailslot by the client
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa365147(v=vs.85).aspx
     http://stackoverflow.com/questions/13060626/mailslot-write-sending-same-thing-three-times-c-c
   */
@@ -46,6 +45,16 @@ public class WindowsIPC {
   */
   public native int createNamedPipeClient(String message);
 
+
+  /*
+    Initialise Winsock
+  */
+  public native int openWinsock();
+
+  /*
+    Create a Winsock client
+  */
+  public native int createWinsockClient();
 
   /*
   Load the native library

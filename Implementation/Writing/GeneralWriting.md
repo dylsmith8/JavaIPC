@@ -1,3 +1,7 @@
+# General refs
+
+1. http://etutorials.org/Programming/secure+programming/Chapter+9.+Networking/9.7+Performing+Interprocess+Communication+Using+Sockets/
+
 # Named Pipes
 
 I initially had some problems implementing named pipes using Java's standard I/O streams such as
@@ -84,6 +88,22 @@ a message. A client averages 909970.4 ns to connect to a slot and deposit a mess
 is almost a third slower than named pipes. Almost the same results are received if you implement
 a test class that makes use of a Java worker thread to connect to the mailslot server.
 
-# Windows Sockets 
+# Windows Sockets
 
 #### Refs
+
+1. https://msdn.microsoft.com/en-us/library/windows/desktop/ms737629(v=vs.85).aspx
+  - Talks about configuring Winsock headers and header guards
+2. https://msdn.microsoft.com/en-us/library/windows/desktop/ms738566(v=vs.85).aspx
+  - Talks about Winsock initilisation
+3. http://www.khambatti.com/mujtaba/ArticlesAndPapers/cse532.pdf
+
+
+According to Microsoft, all processes that make use of Winsock functions must initialise
+the Windows Sockets DLL before making function calls. This ensures that Winsock is supported on
+the system. `WSAStartup` is used to initialise use of WS2_32.dll. This returns -1 if it fails.
+This could be because the system does not support socket communication.
+
+
+
+According to

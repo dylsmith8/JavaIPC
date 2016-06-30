@@ -47,6 +47,22 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv *, jobject, jstring);
 
+/*
+ * Class:     WindowsIPC
+ * Method:    openWinsock
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createWinsockClient
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif
