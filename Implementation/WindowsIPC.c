@@ -1,7 +1,7 @@
 /*
 Author: Dylan Smith
 Date Created: 19 May 2016
-Last Modified: 29 June 2016
+Last Modified: 30 June 2016
 
 Implementation of native functions
 */
@@ -196,9 +196,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
 
     mailslotHandle = CreateMailslot (
       nameMailslot,              // name
-      BUFFER_SIZE,                     // buffer size of 1k
-      MAILSLOT_WAIT_FOREVER,    //
-      NULL
+      BUFFER_SIZE,               // buffer size of 1k
+      MAILSLOT_WAIT_FOREVER,     // block the thread
+      NULL                       // default security
     );
 
     // check if mailslot was created sucessfully
