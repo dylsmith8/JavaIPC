@@ -196,9 +196,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
 
     mailslotHandle = CreateMailslot (
       nameMailslot,              // name
-      BUFFER_SIZE,                     // buffer size of 1k
-      MAILSLOT_WAIT_FOREVER,    //
-      NULL
+      BUFFER_SIZE,               // buffer size of 1k
+      MAILSLOT_WAIT_FOREVER,     // block the thread
+      NULL                       // default security
     );
 
     // check if mailslot was created sucessfully
