@@ -82,4 +82,8 @@ I implemented some timing code to test the efficiency of the slot. I tested mail
 by executing them ten times and recording the average time it took to send
 a message. A client averages 909970.4 ns to connect to a slot and deposit a message. This
 is almost a third slower than named pipes. Almost the same results are received if you implement
-a test class that makes use of a Java worker thread to connect to the mailslot server. 
+a test class that makes use of a Java worker thread to connect to the mailslot server.
+
+# Windows Sockets 
+
+#### Refs
