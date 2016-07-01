@@ -54,7 +54,7 @@ public class WindowsIPC {
   /*
     Create a Winsock client
   */
-  public native int createWinsockClient();
+  public native int createWinsockClient(String message);
 
   /*
   Load the native library

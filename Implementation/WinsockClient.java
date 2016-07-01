@@ -10,9 +10,11 @@ public class WinsockClient {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
 
-    if (winIPC.createWinsockClient() == 0)
+    long time = System.nanoTime();
+    if (winIPC.createWinsockClient("Hello Windows IPC") == 0)
       System.out.println("Java: Client connected correctly");
     else
       System.out.println("Java: Client connection failed");
+    System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
   } // main
 } // class

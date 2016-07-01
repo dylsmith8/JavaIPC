@@ -58,10 +58,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
 /*
  * Class:     WindowsIPC
  * Method:    createWinsockClient
- * Signature: ()I
+ * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus
 }

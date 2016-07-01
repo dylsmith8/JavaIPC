@@ -293,6 +293,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
   (JNIEnv * env, jobject obj) {
+
+    printf("Initilising Winsock Server...");
+
     WSADATA wsaData; // this will contain information about the socket. Is a struct
 
     // intialise use of WS2_32.dll
@@ -413,10 +416,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
-  (JNIEnv * env, jobject obj) {
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    printf("Message size in bytes: %d\n", (int) strlen(str));
 
     WSADATA wsaData; // this will contain information about the socket. Is a struct
-
 
     // intialise use of WS2_32.dll
     int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
@@ -475,12 +481,12 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     }
 
     int recvbuflen = BUFFER_SIZE;
-    char *sendbuf = "this is a test message sent from the client";
+  //  char *sendbuf = "this is a test message sent from the client sdsdsdasdasdas";
     char recvbuf[BUFFER_SIZE];
 
     int iResult;
     // Send an initial buffer
-    iResult = send(ConnectSocket, sendbuf, (int) strlen(sendbuf), 0);
+    iResult = send(ConnectSocket, str, (int) strlen(str), 0);
     if (iResult == SOCKET_ERROR) {
       printf("send failed: %d\n", WSAGetLastError());
       closesocket(ConnectSocket);
@@ -521,7 +527,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
         return -1;
     }
 
-        // cleanup
+    // cleanup
     closesocket(ConnectSocket);
     WSACleanup();
 
