@@ -6,15 +6,26 @@ Last Modified: 30 June 2016
 Implementation of native functions
 */
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <jni.h>
 #include <stdio.h>
 #include <errno.h>
 
 #include "windows.h" // windows API
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 
 #include "WindowsIPC.h" // native methods
 
+#pragma comment(lib, "Ws2_32.lib")
+
 #define BUFFER_SIZE 1024 // 1K buffer size
+#define SOCKET_DEFAULT_PORT "27015"
+#define LOCALHOST "127.0.0.1"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 const jbyte *nameMailslot; // global variable reprenting the mailslot name
@@ -183,7 +194,6 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
     DWORD cbBytes; // bytes written
     jboolean result; // result of read
 
-
     jstring message; // message received from mailslot client
 
     // used to display an error if failure occurs
@@ -274,6 +284,263 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
     CloseHandle(mailslotHandle);
     return retval;
   } // connect to mailslot
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openWinsock
+ * Signature: ()I
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
+  (JNIEnv * env, jobject obj) {
+
+    printf("Initilising Winsock Server...");
+
+    WSADATA wsaData; // this will contain information about the socket. Is a struct
+    char recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
+    int resultRec, iSendResult;     // number of bytes received and sent
+    int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
+    jstring message;                // message to return to Java program (this is received from the client)
+
+    // used to display an error if failure occurs
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    puts(error);
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+    // intialise use of WS2_32.dll
+    int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
+    if (resultOfInitialisation != 0) {
+      printf("WSAStartup failed");
+      return errorForJavaProgram;
+    }
+
+    struct addrinfo *result = NULL, *ptr = NULL, hints;
+    ZeroMemory(&hints, sizeof (hints));
+    hints.ai_family = AF_INET;                // is IPv4
+    hints.ai_socktype = SOCK_STREAM;          // is a stream socket
+    hints.ai_protocol = IPPROTO_TCP;          // We are using TCP
+    hints.ai_flags = AI_PASSIVE;              // caller is going to use a bind function
+
+    // Resolve the local address and port to be used by the server
+    resultOfInitialisation = getaddrinfo(NULL, SOCKET_DEFAULT_PORT, &hints, &result);
+    if (resultOfInitialisation != 0) {
+        printf("getaddrinfo failed: %d\n", resultOfInitialisation);
+        WSACleanup();
+        return errorForJavaProgram;
+    }
+
+    // create a socket that listens for client connections
+    SOCKET ListenSocket = INVALID_SOCKET;
+    ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+
+    // check for some errors
+    if (ListenSocket == INVALID_SOCKET) {
+      printf("Error at socket(): %ld\n", WSAGetLastError());
+      freeaddrinfo(result);
+      WSACleanup();
+      return errorForJavaProgram;
+    }
+
+    // server must BIND to a network address within the system
+    resultOfInitialisation = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+    // check for bind errors
+    if (resultOfInitialisation == SOCKET_ERROR) {
+        printf("bind failed with error: %d\n", WSAGetLastError());
+        freeaddrinfo(result);
+        closesocket(ListenSocket);
+        WSACleanup();
+        return errorForJavaProgram;
+    }
+
+    // once bound, free address info
+    freeaddrinfo(result);
+
+    // bound so now listen for a client connection
+    if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
+      printf("Listen failed with error: %ld\n", WSAGetLastError() );
+      closesocket(ListenSocket);
+      WSACleanup();
+      return errorForJavaProgram;
+    }
+
+    // should now handle connection requests on the socket
+    SOCKET ClientSocket = INVALID_SOCKET; // temp for accepting client connections
+    ClientSocket = accept(ListenSocket, NULL, NULL);
+    if (ClientSocket == INVALID_SOCKET) {
+      printf("accept failed: %d\n", WSAGetLastError());
+      closesocket(ListenSocket);
+      WSACleanup();
+      return errorForJavaProgram;
+    }
+
+    // receive something until the client disconnects
+    do {
+      resultRec = recv(ClientSocket, recvbuf, recvbuflen, 0);
+
+      if (resultRec > 0) {
+        printf("Bytes received: %d\n", resultRec);
+
+        // Echo the buffer back to the sender
+        iSendResult = send(ClientSocket, recvbuf, resultRec, 0);
+        if (iSendResult == SOCKET_ERROR) {
+            printf("send failed: %d\n", WSAGetLastError());
+            closesocket(ClientSocket);
+            WSACleanup();
+            return errorForJavaProgram;
+        }
+        printf("Bytes sent: %d\n", iSendResult);
+      }
+      else if (resultRec == 0) printf("Connection closing...\n");
+      else {
+        printf("recv failed: %d\n", WSAGetLastError());
+        closesocket(ClientSocket);
+        WSACleanup();
+        return errorForJavaProgram;
+      }
+    } while (resultRec > 0);
+
+    // receiving done so shut down socket
+    resultRec = shutdown(ClientSocket, SD_SEND);
+    if (resultRec == SOCKET_ERROR) {
+        printf("shutdown failed: %d\n", WSAGetLastError());
+        closesocket(ClientSocket);
+        WSACleanup();
+        return errorForJavaProgram;
+    }
+
+    // cleanup
+    closesocket(ClientSocket);
+    WSACleanup();
+
+    // return..
+    puts(recvbuf);
+    message = (*env)->NewStringUTF(env, recvbuf); // success
+    return message;
+  } // openWinsock
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createWinsockClient
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    printf("Message size in bytes: %d\n", (int) strlen(str));
+
+    WSADATA wsaData; // this will contain information about the socket. Is a struct
+
+    // intialise use of WS2_32.dll
+    int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
+    if (resultOfInitialisation != 0) {
+      printf("WSAStartup failed");
+      return -1;
+    }
+
+    struct addrinfo *result = NULL,
+                    *ptr = NULL,
+                    hints;
+
+    SOCKET ConnectSocket = INVALID_SOCKET;    // temp socket for connection
+    int recvbuflen = BUFFER_SIZE;             // specify the receive buffer size
+    char recvbuf[BUFFER_SIZE];                // receive buffer
+    int iResult;                              // bytes received from server response
+
+    ZeroMemory(&hints, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // stream protocol for TCP
+    hints.ai_protocol = IPPROTO_TCP; // TCP
+
+    // now need to resolve IP and port
+    resultOfInitialisation = getaddrinfo(LOCALHOST, SOCKET_DEFAULT_PORT, &hints, &result);
+    if (resultOfInitialisation != 0) {
+      printf("getaddrinfo failed: %d\n", resultOfInitialisation);
+      WSACleanup();
+      return -1;
+    }
+
+    ptr = result;
+
+    // socket for connecting to the server
+    ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+
+    // check socket is valid
+    if (ConnectSocket == INVALID_SOCKET) {
+      printf("Error at socket(): %ld\n", WSAGetLastError());
+      freeaddrinfo(result);
+      WSACleanup();
+      return -1;
+    }
+
+    // connect to the server
+    resultOfInitialisation = connect(ConnectSocket, ptr->ai_addr, (int) ptr->ai_addrlen);
+    if (resultOfInitialisation == SOCKET_ERROR) {
+        closesocket(ConnectSocket);
+        ConnectSocket = INVALID_SOCKET;
+    }
+
+    // connected, so free some resources
+    freeaddrinfo(result);
+
+    // perform some error checking
+    if (ConnectSocket == INVALID_SOCKET) {
+      printf("Unable to connect to server!\n");
+      WSACleanup();
+      return -1;
+    }
+
+    // Send an initial buffer
+    iResult = send(ConnectSocket, str, (int) strlen(str), 0);
+    if (iResult == SOCKET_ERROR) {
+      printf("send failed: %d\n", WSAGetLastError());
+      closesocket(ConnectSocket);
+      WSACleanup();
+      return -1;
+    }
+
+    printf("Bytes Sent: %ld\n", iResult);
+
+    // shutdown the connection for sending since no more data will be sent
+    iResult = shutdown(ConnectSocket, SD_SEND);
+    if (iResult == SOCKET_ERROR) {
+      printf("shutdown failed: %d\n", WSAGetLastError());
+      closesocket(ConnectSocket);
+      WSACleanup();
+      return -1;
+    }
+
+    // Receive data until the server closes the connection
+    do {
+      iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+      if (iResult > 0)
+        printf("Bytes received: %d\n", iResult);
+      else if (iResult == 0)
+        printf("Connection closed\n");
+      else
+        printf("recv failed: %d\n", WSAGetLastError());
+    } while (iResult > 0);
+
+
+    // shutdown the send half of the connection since no more data will be sent
+    iResult = shutdown(ConnectSocket, SD_SEND);
+    if (iResult == SOCKET_ERROR) {
+        printf("shutdown failed: %d\n", WSAGetLastError());
+        closesocket(ConnectSocket);
+        WSACleanup();
+        return -1;
+    }
+
+    // cleanup
+    closesocket(ConnectSocket);
+    WSACleanup(); // terminate use of ws2_32.dll
+
+    // free memory allocated to the message
+    (*env)->ReleaseStringUTFChars(env, message, str);
+
+    return 0;
+  } // createWinsockClient
 
 void main() {
 } // main

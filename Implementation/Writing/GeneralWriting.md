@@ -1,3 +1,7 @@
+# General refs
+
+1. http://etutorials.org/Programming/secure+programming/Chapter+9.+Networking/9.7+Performing+Interprocess+Communication+Using+Sockets/
+
 # Named Pipes
 
 I initially had some problems implementing named pipes using Java's standard I/O streams such as
@@ -82,4 +86,62 @@ I implemented some timing code to test the efficiency of the slot. I tested mail
 by executing them ten times and recording the average time it took to send
 a message. A client averages 909970.4 ns to connect to a slot and deposit a message. This
 is almost a third slower than named pipes. Almost the same results are received if you implement
-a test class that makes use of a Java worker thread to connect to the mailslot server. 
+a test class that makes use of a Java worker thread to connect to the mailslot server.
+
+# Windows Sockets
+
+#### Refs
+
+1. https://msdn.microsoft.com/en-us/library/windows/desktop/ms737629(v=vs.85).aspx
+  - Talks about configuring Winsock headers and header guards
+2. https://msdn.microsoft.com/en-us/library/windows/desktop/ms738566(v=vs.85).aspx
+  - Talks about Winsock initilisation
+3. http://www.khambatti.com/mujtaba/ArticlesAndPapers/cse532.pdf
+4. http://www.sockets.com/winsock2.htm
+
+
+According to Microsoft, all processes that make use of Winsock functions must initialise
+the Windows Sockets DLL before making function calls. This ensures that Winsock is supported on
+the system. `WSAStartup` is used to initialise use of WS2_32.dll. This returns -1 if it fails.
+This is used to handle the possibility that the system does not support socket communication.
+
+
+The server was created first by making use of a default port number defined as a constant
+and using the IP address of localhost (127.0.0.1). A socket is then created that
+listens for any client communication. It makes use of IPv4 by using the `AF_INET` flag
+and uses TCP as a communication protocol. This is then **bound** to a network address
+using the `bind` function. Subsequent to a successful bind, `listen` is used for
+incoming client connections. `accept` is used to handle client requests.
+Once a client connection has been accepted, a do-while is used to receive the data,
+do something with it, until there are no more bytes to receive from the client.
+In this implementation, the server simply echoes the message back to the client,
+effectively simulating a round-trip. There is some error checking in place that
+ensures it fails 'gracefully' if a socket error or byte receipt error occurs.
+Once this is completed, the function cleans up any resources that are used
+in its implementation of the server socket.
+
+
+After the server's implementation, I created the client socket.
+This was designed so that when the JNI function is called, it will
+connect to a previously running Winsock server that exists on localhost at
+the hardcoded (#define) port number. So the programmer does not have to worry about
+configuring an IP address or port number prior to a connection.
+The message is a simple string that is specified as an argument with its
+byte size extracted using `strlen`. The client also uses `WSAStartup` to
+initialise use of WS2_32.dll. The IP address family and protocol are set
+as IPv4 and TCP respectively. The function `connect` is used to connect to
+the server. Once successfully connected, a do-while is used to do something until
+all the server response bytes have been received. In this case it just prints
+out the number of bytes received from the server which is simply the message the client sent echoed back.
+Once this has been completed, resources are freed, including the socket
+connections and JNI string representing the message that was sent to the server.
+
+
+Testing Winsocks was done by creating two Java programs, one that creates the server and
+another that connects as a client. The server program should be initiated first and the
+client after. A simple message is sent from the client Java program and then
+echoed back from the server to the client. This process is timed, effectively
+representing the round-trip delay of the message sent. A simple string message
+takes roughly 1231481 ns, which is significantly slower than that of mailslots and
+named pipes so far. A single Java program that uses a thread as a client was
+also implemented that yields similar results.
