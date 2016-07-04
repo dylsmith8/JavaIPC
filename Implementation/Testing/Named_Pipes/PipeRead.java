@@ -10,7 +10,7 @@ public class PipeRead {
 
 		// create a client that sends a message along an existing named pipe
 		long time = System.nanoTime();
-		if (winIPC.createNamedPipeClient("MESSAGE: HELLO PIPE") == 0)
+		if (winIPC.createNamedPipeClient("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
 			System.out.println("client created successfully");
 		else
 			System.out.println("Error creating client - no pipe to connect to");
