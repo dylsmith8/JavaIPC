@@ -297,6 +297,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
     printf("Initilising Winsock Server...");
 
     WSADATA wsaData; // this will contain information about the socket. Is a struct
+    char recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
+    int resultRec, iSendResult;     // number of bytes received and sent
+    int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
 
     // intialise use of WS2_32.dll
     int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
@@ -363,10 +366,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
       WSACleanup();
       return -1;
     }
-
-    char recvbuf[BUFFER_SIZE];
-    int resultRec, iSendResult;
-    int recvbuflen = BUFFER_SIZE;
 
     // receive something until the client disconnects
     do {
@@ -435,6 +434,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
                     *ptr = NULL,
                     hints;
 
+    SOCKET ConnectSocket = INVALID_SOCKET;    // temp socket for connection
+    int recvbuflen = BUFFER_SIZE;             // specify the receive buffer size
+    char recvbuf[BUFFER_SIZE];                // receive buffer
+    int iResult;                              // bytes received from server response
 
     ZeroMemory(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
@@ -449,7 +452,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
       return -1;
     }
 
-    SOCKET ConnectSocket = INVALID_SOCKET;
     ptr = result;
 
     // socket for connecting to the server
@@ -480,11 +482,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
       return -1;
     }
 
-    int recvbuflen = BUFFER_SIZE;
-  //  char *sendbuf = "this is a test message sent from the client sdsdsdasdasdas";
-    char recvbuf[BUFFER_SIZE];
-
-    int iResult;
     // Send an initial buffer
     iResult = send(ConnectSocket, str, (int) strlen(str), 0);
     if (iResult == SOCKET_ERROR) {
@@ -497,7 +494,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     printf("Bytes Sent: %ld\n", iResult);
 
     // shutdown the connection for sending since no more data will be sent
-    // the client can still use the ConnectSocket for receiving data
     iResult = shutdown(ConnectSocket, SD_SEND);
     if (iResult == SOCKET_ERROR) {
       printf("shutdown failed: %d\n", WSAGetLastError());
@@ -529,12 +525,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 
     // cleanup
     closesocket(ConnectSocket);
-    WSACleanup();
+    WSACleanup(); // terminate use of ws2_32.dll
+
+    // free memory allocated to the message
+    (*env)->ReleaseStringUTFChars(env, message, str);
 
     return 0;
   } // createWinsockClient
-
-
 
 void main() {
 } // main
