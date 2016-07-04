@@ -74,6 +74,7 @@ public class WindowsIPC {
 
         DataOutputStream out = new DataOutputStream(server.getOutputStream());
         out.writeUTF("Echo: " + messageFromClient);
+
         server.close();
     } catch(IOException e) {
         e.printStackTrace();
@@ -81,6 +82,9 @@ public class WindowsIPC {
     return messageFromClient; // return the message sent from the client
   }
 
+  /*
+    Create a Java socket client that connects to a Java socket server (should be called after createJavaSocketServer)
+  */
   public int createJavaSocketClient(String host, int port, String message) {
     try {
       System.out.println("Connecting to " + host + " on port " + port);
@@ -88,7 +92,7 @@ public class WindowsIPC {
 
       OutputStream outToServer = client.getOutputStream();
       DataOutputStream out = new DataOutputStream(outToServer);
-      out.writeUTF(message); 
+      out.writeUTF(message);
 
       InputStream inFromServer = client.getInputStream();
       DataInputStream in = new DataInputStream(inFromServer);
@@ -98,7 +102,7 @@ public class WindowsIPC {
 
     } catch (IOException e) {
       e.printStackTrace();
-      return -1;
+      return -1; // error occured
     }
     return 0; // success
   }

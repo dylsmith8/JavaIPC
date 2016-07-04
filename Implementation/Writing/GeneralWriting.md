@@ -147,3 +147,36 @@ takes roughly 1361802ns. This was calculated by dividing the round-trip time ave
 The result is significantly slower than that of mailslots and named pipes so far.
 A single Java program that uses a thread as a client was
 also implemented that yields similar results.
+
+
+# Java Sockets
+
+This IPC mechanism does not use any native code and simply makes use of
+Java's socket mechanisms. The code was written in the WindowsIPC class as simple
+methods. I first implemented the socket server in the method `createJavaSocketServer`
+that returns a string and takes a port number as an argument. It creates a socket server that
+waits for a client connection by calling the `accept` method on a `Socket` object.
+A `DataInputStream` object is used to read what a client has written to the server.
+A `DataOutputStream` object is used to echo the message it received back to the client
+process. Some error checking is in place to ensure that a valid port number is used.
+Finally, the method returns the string value that the client sent across the socket.
+
+
+After I implemented the server, I implemented the client. The client returns an int
+which represents if the method executed as expected. A returned value of zero indicates that the method executed as expected.
+-1 indicates an error occured. The method takes the host name, port
+and message as arguments. The host name, in this case, should always be localhost (127.0.0.1).
+The port number should be above 1024 to not use privileged port numbers.
+A `Socket` object connects to localhost and the port number specified.
+A `DataOutputStream` object writes data to the server using the method `WriteUTF` (since) a
+string value is being sent from the client to the server.
+The client then prints out the message that was echoed back from the server (in this case, it is
+just the same message that was sent across).
+
+
+Java sockets execution time and performance is significantly poor in relation to
+the other IPC mechanisms that have been implemented so far. A client and server program
+were implemented as well as a program that used a Java thread as a client. Both yield similar
+results. After executing them 10 times and averaging the runtime for one-way sending of
+a message (division by 2) the result was: 2984249,45 ns. This is significantly slower than
+the other methods (even Winsock).
