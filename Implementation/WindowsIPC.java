@@ -88,7 +88,7 @@ public class WindowsIPC {
 
       OutputStream outToServer = client.getOutputStream();
       DataOutputStream out = new DataOutputStream(outToServer);
-      out.writeUTF(message); // write a 40 byte message
+      out.writeUTF(message); 
 
       InputStream inFromServer = client.getInputStream();
       DataInputStream in = new DataInputStream(inFromServer);

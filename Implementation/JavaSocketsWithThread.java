@@ -21,6 +21,7 @@ public class JavaSocketsWithThread {
 
     public void run() {
       long time = System.nanoTime();
+      // write a 40 byte message 
       if (winIPC.createJavaSocketClient("127.0.0.1", 5060, "awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
         System.out.println("Client connected and sent message successfully");
       else
