@@ -128,6 +128,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     // read the message
     const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
 
+    printf("named pipe message size in bytes: %d", strlen(str));
+
     // check the string
     if (str == NULL) return -1; // out of memory
 
@@ -252,6 +254,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
     jboolean result;  // stores the result of the WriteFile
 
     const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+    printf("mailslot message size in bytes: %d", strlen(str));
+
 
     // connect to existing mailslot
     mailslotHandle = CreateFile (

@@ -11,7 +11,7 @@ public class WinsockClient {
     WindowsIPC winIPC = new WindowsIPC();
 
     long time = System.nanoTime();
-    if (winIPC.createWinsockClient("Hello Windows IPC") == 0)
+    if (winIPC.createWinsockClient("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
       System.out.println("Java: Client connected correctly");
     else
       System.out.println("Java: Client connection failed");
