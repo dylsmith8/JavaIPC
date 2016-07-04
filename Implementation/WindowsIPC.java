@@ -4,6 +4,8 @@
   *   Modified: 30 June 2016
   *   Follows Linux style of error reporting
   */
+import java.io.*;
+import java.net.*;
 public class WindowsIPC {
 
 
@@ -55,6 +57,51 @@ public class WindowsIPC {
     Create a Winsock client
   */
   public native int createWinsockClient(String message);
+
+  /*
+    Create a Java Sockets Server (no JNI) on local host at specific port
+  */
+  public String createJavaSocketServer(int port) {
+    String messageFromClient = "";
+    try {
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.out.println("Waiting for client to connect on port " + serverSocket.getLocalPort() + "...");
+
+        Socket server = serverSocket.accept();
+
+        DataInputStream in = new DataInputStream(server.getInputStream());
+        messageFromClient = in.readUTF();
+
+        DataOutputStream out = new DataOutputStream(server.getOutputStream());
+        out.writeUTF("Echo: " + messageFromClient);
+        server.close();
+    } catch(IOException e) {
+        e.printStackTrace();
+      }
+    return messageFromClient; // return the message sent from the client
+  }
+
+  public int createJavaSocketClient(String host, int port, String message) {
+    try {
+      System.out.println("Connecting to " + host + " on port " + port);
+      Socket client = new Socket(host, port);
+
+      OutputStream outToServer = client.getOutputStream();
+      DataOutputStream out = new DataOutputStream(outToServer);
+      out.writeUTF(message); // write a 40 byte message
+
+      InputStream inFromServer = client.getInputStream();
+      DataInputStream in = new DataInputStream(inFromServer);
+
+      System.out.println(in.readUTF()); // print server echo
+      client.close();
+
+    } catch (IOException e) {
+      e.printStackTrace();
+      return -1;
+    }
+    return 0; // success
+  }
 
   /*
   Load the native library
