@@ -32,7 +32,8 @@ one that created the named pipe 'server' and another that connected as a 'client
 to the server. The programs called the appropriate native methods defined in the WindowsIPC class.
 I included timing code to calculate the time it took for a message to be sent from one process
 to another (i.e. from one Java program to the other). I ran the code ten times and collected the
-timing results. The average time it took to send a message was a respectable 623650,6 ns
+timing results. The average time it took to send a message was a respectable 968873.1 ns with a byte size of 40
+ ns
 
 # Mailslots
 
@@ -84,7 +85,7 @@ at the 'server' end and is simply printed out.
 
 I implemented some timing code to test the efficiency of the slot. I tested mailslot
 by executing them ten times and recording the average time it took to send
-a message. A client averages 909970.4 ns to connect to a slot and deposit a message. This
+a message. A client averages 895244.5 ns to connect to a slot and deposit a message. This
 is almost a third slower than named pipes. Almost the same results are received if you implement
 a test class that makes use of a Java worker thread to connect to the mailslot server.
 
@@ -141,7 +142,8 @@ Testing Winsocks was done by creating two Java programs, one that creates the se
 another that connects as a client. The server program should be initiated first and the
 client after. A simple message is sent from the client Java program and then
 echoed back from the server to the client. This process is timed, effectively
-representing the round-trip delay of the message sent. A simple string message
-takes roughly 1231481 ns, which is significantly slower than that of mailslots and
-named pipes so far. A single Java program that uses a thread as a client was
+representing the round-trip delay of the message sent. A simple string message of 40 bytes
+takes roughly 1361802ns. This was calculated by dividing the round-trip time average by 2 over a period of 10 runs
+The result is significantly slower than that of mailslots and named pipes so far.
+A single Java program that uses a thread as a client was
 also implemented that yields similar results.

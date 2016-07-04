@@ -10,7 +10,7 @@ public class MailslotClient {
     WindowsIPC winIPC = new WindowsIPC();
 
     long time = System.nanoTime();
-    if (winIPC.connectToMailslot("Message dumped in slot") == 0) {
+    if (winIPC.connectToMailslot("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0) {
       System.out.println("Java: Mailslot message dumped successfully");
       System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
     }
