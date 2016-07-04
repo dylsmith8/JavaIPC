@@ -12,10 +12,8 @@ public class WinsockWithThread {
     Thread t = new Thread(new WinsockThread());
     t.start();
 
-    if (winIPC.openWinsock() == 0)
-      System.out.println("Java: Winsock Server Created");
-    else
-      System.out.println("JavaL Winsock Server creation failed");
+    String x = winIPC.openWinsock();
+    System.out.println("Message in Java: " + x);
   } // main
 
   private static class WinsockThread implements Runnable {

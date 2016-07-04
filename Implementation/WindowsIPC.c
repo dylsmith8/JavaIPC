@@ -194,7 +194,6 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
     DWORD cbBytes; // bytes written
     jboolean result; // result of read
 
-
     jstring message; // message received from mailslot client
 
     // used to display an error if failure occurs
@@ -291,7 +290,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
  * Method:    openWinsock
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
   (JNIEnv * env, jobject obj) {
 
     printf("Initilising Winsock Server...");
@@ -300,12 +299,19 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
     char recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
     int resultRec, iSendResult;     // number of bytes received and sent
     int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
+    jstring message;                // message to return to Java program (this is received from the client)
+
+    // used to display an error if failure occurs
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    puts(error);
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // intialise use of WS2_32.dll
     int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
     if (resultOfInitialisation != 0) {
       printf("WSAStartup failed");
-      return -1;
+      return errorForJavaProgram;
     }
 
     struct addrinfo *result = NULL, *ptr = NULL, hints;
@@ -320,7 +326,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
     if (resultOfInitialisation != 0) {
         printf("getaddrinfo failed: %d\n", resultOfInitialisation);
         WSACleanup();
-        return -1;
+        return errorForJavaProgram;
     }
 
     // create a socket that listens for client connections
@@ -332,7 +338,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
       printf("Error at socket(): %ld\n", WSAGetLastError());
       freeaddrinfo(result);
       WSACleanup();
-      return -1;
+      return errorForJavaProgram;
     }
 
     // server must BIND to a network address within the system
@@ -343,7 +349,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
         freeaddrinfo(result);
         closesocket(ListenSocket);
         WSACleanup();
-        return -1;
+        return errorForJavaProgram;
     }
 
     // once bound, free address info
@@ -354,7 +360,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
       printf("Listen failed with error: %ld\n", WSAGetLastError() );
       closesocket(ListenSocket);
       WSACleanup();
-      return -1;
+      return errorForJavaProgram;
     }
 
     // should now handle connection requests on the socket
@@ -364,7 +370,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
       printf("accept failed: %d\n", WSAGetLastError());
       closesocket(ListenSocket);
       WSACleanup();
-      return -1;
+      return errorForJavaProgram;
     }
 
     // receive something until the client disconnects
@@ -380,7 +386,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
             printf("send failed: %d\n", WSAGetLastError());
             closesocket(ClientSocket);
             WSACleanup();
-            return -1;
+            return errorForJavaProgram;
         }
         printf("Bytes sent: %d\n", iSendResult);
       }
@@ -389,7 +395,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
         printf("recv failed: %d\n", WSAGetLastError());
         closesocket(ClientSocket);
         WSACleanup();
-        return -1;
+        return errorForJavaProgram;
       }
     } while (resultRec > 0);
 
@@ -399,14 +405,17 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openWinsock
         printf("shutdown failed: %d\n", WSAGetLastError());
         closesocket(ClientSocket);
         WSACleanup();
-        return -1;
+        return errorForJavaProgram;
     }
 
     // cleanup
     closesocket(ClientSocket);
     WSACleanup();
 
-    return 0; // success
+    // return..
+    puts(recvbuf);
+    message = (*env)->NewStringUTF(env, recvbuf); // success
+    return message;
   } // openWinsock
 
 /*

@@ -49,7 +49,7 @@ public class WindowsIPC {
   /*
     Initialise Winsock
   */
-  public native int openWinsock();
+  public native String openWinsock();
 
   /*
     Create a Winsock client
