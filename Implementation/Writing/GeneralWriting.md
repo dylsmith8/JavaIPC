@@ -2,6 +2,11 @@
 
 1. http://etutorials.org/Programming/secure+programming/Chapter+9.+Networking/9.7+Performing+Interprocess+Communication+Using+Sockets/
 
+# General Conventions
+
+1. Java **methods** in camel case (e.g. `thisIsAJavaMethod()`)
+2. Windows API/C methods in usual C-Style conventions (e.g. `ThisIsACMethod()`)
+
 # Named Pipes
 
 I initially had some problems implementing named pipes using Java's standard I/O streams such as
@@ -183,3 +188,60 @@ the other methods (even Winsock).
 
 
 # File Mapping (Shared Memory)
+
+File mapping essentially represents shared memory and as such is expected to perform
+relatively well in comparison to the other IPC mechanisms that have been implemented so
+far.
+
+I went about this be declaring a native method `createFileMapping` that returns an
+integer value representing the status of the method's execution. If it returns zero,
+the method executed as expected, else -1 is returned. The method also takes in a string
+value representing the message that is to be mapped. The native code belonging
+to this method creates a memory mapped file that a process can access and read the contents of.
+I then created a method called `openFileMapping` that uses native code to open an
+existing memory mapped file. It also returns an integer value, with zero indicating success
+and 0 indicating failure.
+
+The `createFileMapping` native function uses a Windows `HANDLE` to create the mapped area of
+memory. The Windows API function `CreateFileMapping` returns a handle to the memory mapped area.
+The flag `PAGE_READWRITE` indicates a generic read and write is allowed. The function arguments
+also specify the size of the region as well as a name that has been hardcoded (the programmer
+therefore does not need to worry about specifying the name of the memory map). The default
+Windows security parameters are specified using `NULL` as another argument. `MapViewOfFile`
+is a Windows API function that essentially maps a **view** of the file into the
+address space of the calling process (i.e. the `client` process that is going to access
+the mapped file). To use this function, the `HANDLE` that was returned by `CreateFileMapping`
+must be used along with the buffer size. Subsequent to the file's mapping,
+`CopyMemory` is used to share the memory containing the message. This function also
+belongs to the Windows API. The function takes the a pointer to the buffer (i.e. the location
+you want to copy a piece of memory too) as well as a pointer to the actual message (i.e the source).
+The size of the memory that needs to be copied must also be specified in bytes. In this case,
+I used the size of the type `TCHAR` (`TCHAR` represents Unicode character strings in C++) multiplied
+by the length of the message. If you mess this up, it can fatally crash the JVM - so some care
+needs to be taken when doing this. `CopyMemory` does not return any value (is `void`).
+`_getch` is a C++ function that is used only to keep the console open for testing purposes.
+(this needs a workaround at this stage, since if you don't specify this, a calling process cannot
+access the memory mapped file). Once the memory has been successfully copied, cleanup operations
+take place. This is dont in the form of `UnmapViewOfFile` and `CloseHandle`.
+
+
+The calling process is implemented in the form of the native function `openFileMapping`.
+This function gets the message that was mapped in `createFileMapping`. It also
+makes use of a Windows `HANDLE` to access the mapped file. The Windows API function
+`OpenFileMapping` which takes the name of the mapping as well as all access privileges.
+The buffer that stores message uses `MapViewOfFile` to retrieve the contents of what
+was mapped, using the handle that was returned with `OpenFileMapping`.
+Once the message has been put into the buffer it is converted into a jstring and returned
+back to the Java code. Some cleaning up code is also used such as `UnmapViewOfFile`
+and `CloseHandle`
+
+To test this IPC mechanism, I created two Java programs: one that created the file mapping
+and another that opened it as such. The first program simply calls the native method
+`createFileMapping` with a message specified as an argument. The second program calls
+`openFileMapping` and puts the return result into a variable and prints out.
+
+Some timing code was put in to test the performance of this mechanism and
+it performs significantly faster (as expected) in comparison to the other
+IPC mechamisms. After ten successful timed runs, an average of 84993,3ns
+was yielded. This is considerably faster than the mechanism (**work out some
+% here**).
