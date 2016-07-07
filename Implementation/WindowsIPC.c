@@ -559,6 +559,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
 
+    TCHAR szMsg[]=TEXT("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW");
+
+
     //create mapping object
     mappedFileHandle = CreateFileMapping (
       INVALID_HANDLE_VALUE,
@@ -589,7 +592,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
       return -1;
     }
 
-    CopyMemory((PVOID)buffer, message, (_tcslen(message) * sizeof(TCHAR))); // problem!!
+    CopyMemory(buffer, szMsg, (_tcslen(szMsg) * sizeof(TCHAR))); // problem!!
     _getch();
 
     //clean up
