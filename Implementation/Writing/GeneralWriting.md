@@ -180,3 +180,6 @@ were implemented as well as a program that used a Java thread as a client. Both 
 results. After executing them 10 times and averaging the runtime for one-way sending of
 a message (division by 2) the result was: 2984249,45 ns. This is significantly slower than
 the other methods (even Winsock).
+
+
+# File Mapping (Shared Memory)

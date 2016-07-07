@@ -110,13 +110,13 @@ public class WindowsIPC {
   /*
     Native method that creates a shared memory mapped file
   */
-  public native int createFileMapping (String name);
+  public native int createFileMapping (String message);
 
   /*
     Open an existing file mapping
   */
-  public native int openFileMapping();
-  
+  public native String openFileMapping();
+
   /*
   Load the native library
   */

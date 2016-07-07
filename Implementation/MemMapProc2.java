@@ -10,11 +10,8 @@ public class MemMapProc2 {
     WindowsIPC winIPC = new WindowsIPC();
 
     long time = System.nanoTime();
-    if (winIPC.openFileMapping() == 0) {
-      System.out.println("File mapping OPENED");
-      System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
-    }
-    else
-      System.out.println("File mapping open failed");
+    String x = winIPC.openFileMapping();
+    System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
+    System.out.println("Message in Java: " + x);
   }
 }

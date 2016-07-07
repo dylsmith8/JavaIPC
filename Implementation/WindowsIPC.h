@@ -74,9 +74,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
 /*
  * Class:     WindowsIPC
  * Method:    openFileMapping
- * Signature: ()I
+ * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_openFileMapping
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus
