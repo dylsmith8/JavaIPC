@@ -18,6 +18,7 @@ Implementation of native functions
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
+#include <conio.h>
 
 #include "WindowsIPC.h" // native methods
 
@@ -26,6 +27,8 @@ Implementation of native functions
 #define BUFFER_SIZE 1024 // 1K buffer size
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
+#define MEMORY_MAPPING_NAME "JavaMemoryMap"
+#define MESSAGE "This is a message"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 const jbyte *nameMailslot; // global variable reprenting the mailslot name
@@ -545,6 +548,100 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 
     return 0;
   } // createWinsockClient
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createFileMapping
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
+  (JNIEnv * env, jobject obj, jstring name) {
+    HANDLE mappedFileHandle;
+    LPCTSTR buffer;
+
+    //create mapping object
+    mappedFileHandle = CreateFileMapping (
+      INVALID_HANDLE_VALUE,
+      NULL,
+      PAGE_READWRITE,
+      0,
+      BUFFER_SIZE,
+      MEMORY_MAPPING_NAME
+    );
+
+    if (mappedFileHandle == NULL) {
+      printf("Error creating a mapped file: %d", GetLastError());
+      return -1;
+    }
+
+    // map view of a file into address space of a calling process
+    buffer = (LPCTSTR) MapViewOfFile (
+      mappedFileHandle,
+      FILE_MAP_ALL_ACCESS,
+      0,
+      0,
+      BUFFER_SIZE
+    );
+
+    if (buffer == NULL) {
+      printf("Could not map view");
+      CloseHandle(mappedFileHandle);
+      return -1;
+    }
+
+    CopyMemory((PVOID)buffer, message, (_tcslen(message) * sizeof(TCHAR))); // problem!!
+    _getch();
+
+    //clean up
+    UnmapViewOfFile(buffer);
+    CloseHandle(mappedFileHandle);
+
+    return 0; // success
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openFileMapping
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openFileMapping
+  (JNIEnv * env, jobject obj) {
+
+    HANDLE mappedFileHandle;
+    LPCTSTR buffer;
+
+    mappedFileHandle = OpenFileMapping (
+      FILE_MAP_ALL_ACCESS,
+      FALSE,
+      MEMORY_MAPPING_NAME
+    );
+
+    if (mappedFileHandle == NULL) {
+      printf("Could not open file mapping");
+      return -1;
+    }
+
+    buffer = (LPTSTR) MapViewOfFile(
+      mappedFileHandle,
+      FILE_MAP_ALL_ACCESS,
+      0,
+      0,
+      BUFFER_SIZE
+    );
+
+    if (buffer == NULL) {
+      printf("Could not map view");
+      CloseHandle(mappedFileHandle);
+      return -1;
+    }
+
+    printf("Message: %s\n",buffer);
+
+    UnmapViewOfFile(buffer);
+    CloseHandle(mappedFileHandle);
+
+    return 0; // success
+  }
 
 void main() {
 } // main

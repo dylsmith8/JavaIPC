@@ -63,6 +63,22 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
   (JNIEnv *, jobject, jstring);
 
+/*
+ * Class:     WindowsIPC
+ * Method:    createFileMapping
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openFileMapping
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openFileMapping
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif
