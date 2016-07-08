@@ -18,6 +18,7 @@ Implementation of native functions
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
+#include <conio.h>
 
 #include "WindowsIPC.h" // native methods
 
@@ -26,6 +27,7 @@ Implementation of native functions
 #define BUFFER_SIZE 1024 // 1K buffer size
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
+#define MEMORY_MAPPING_NAME "JavaMemoryMap"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 const jbyte *nameMailslot; // global variable reprenting the mailslot name
@@ -545,6 +547,114 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 
     return 0;
   } // createWinsockClient
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createFileMapping
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    HANDLE mappedFileHandle;
+    LPCTSTR buffer;
+
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+    printf("Mapped message size in bytes: %d", strlen(str));
+
+    //create mapping object
+    mappedFileHandle = CreateFileMapping (
+      INVALID_HANDLE_VALUE,
+      NULL,
+      PAGE_READWRITE,
+      0,
+      BUFFER_SIZE,
+      MEMORY_MAPPING_NAME
+    );
+
+    if (mappedFileHandle == NULL) {
+      printf("Error creating a mapped file: %d", GetLastError());
+      return -1;
+    }
+
+    // map view of a file into address space of a calling process
+    buffer = (LPCTSTR) MapViewOfFile (
+      mappedFileHandle,
+      FILE_MAP_ALL_ACCESS,
+      0,
+      0,
+      BUFFER_SIZE
+    );
+
+    if (buffer == NULL) {
+      printf("Could not map view");
+      CloseHandle(mappedFileHandle);
+      return -1;
+    }
+
+    CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
+     _getch(); // keeps console open for now until you press enter --> will allow the function to return
+
+    //clean up
+    UnmapViewOfFile(buffer);
+    CloseHandle(mappedFileHandle);
+
+    return 0; // success
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openFileMapping
+ * Signature: ()I
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
+  (JNIEnv * env, jobject obj) {
+
+    jstring message;
+
+    // for errors
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    //puts(error);
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+    HANDLE mappedFileHandle;
+    LPCTSTR buffer;
+
+    mappedFileHandle = OpenFileMapping (
+      FILE_MAP_ALL_ACCESS,
+      FALSE,
+      MEMORY_MAPPING_NAME
+    );
+
+    if (mappedFileHandle == NULL) {
+      printf("Could not open file mapping");
+      return errorForJavaProgram;
+    }
+
+    buffer = (LPTSTR) MapViewOfFile(
+      mappedFileHandle,
+      FILE_MAP_ALL_ACCESS,
+      0,
+      0,
+      BUFFER_SIZE
+    );
+
+    if (buffer == NULL) {
+      printf("Could not map view");
+      CloseHandle(mappedFileHandle);
+      return errorForJavaProgram;
+    }
+
+    // return..
+    message = (*env)->NewStringUTF(env, buffer); 
+
+    //clean up
+    UnmapViewOfFile(buffer);
+    CloseHandle(mappedFileHandle);
+
+    return message; // success
+  }
 
 void main() {
 } // main
