@@ -4,4 +4,5 @@
 3. In WindowsIPC, in `createJavaSocketServer`, need to add some error checking
   to ensure that a valid port number is entered and not a privileged port (i.e mustn't be < 1024)
 4. Code refactoring 
-5. Record timings of writing to a named pipe using Java's IO
+5. Record timings of writing to a named pipe using Java's IO 
+	- Bug where it doesn't get the message correctly when trying to output it 
