@@ -110,7 +110,8 @@ The message is then accessed by the main thread (sine `createMailslot` returns w
 that was written to it.). By using this method, I was able to make use of slots 
 by simply using one JNI call to create the slot. I did not need to 
 call the native method `connectToMailslot` to connect to it and 
-send a message. In terms of performance results: **PUT TIMING RESULTS HERE** 
+send a message. In terms of performance results: a message write to the slot took 132797.1
+ns which is approximately an 85% performance gain by simply limiting a single JNI call. 
 
 # Windows Sockets
 
