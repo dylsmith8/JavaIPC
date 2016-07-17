@@ -10,8 +10,11 @@
 		WindowsIPC winIPC = new WindowsIPC();
 		final String MAILSLOT_NAME = "\\\\.\\mailslot\\javaMailslot";
 
+		// create the client thread 
 		Thread t = new Thread(new MailslotThread(MAILSLOT_NAME));
 	    t.start();
+
+	    // create the mailslot 
     	String x = winIPC.createMailslot(MAILSLOT_NAME);
 		System.out.println("This is the message in Java: " + x);
  	}
@@ -24,6 +27,7 @@
  		
  		public void run() {
  			try {
+ 				// creates a client and deposits a message into the slot
 				PrintWriter pw = new PrintWriter (new FileOutputStream (mailslotName));
 		    	pw.println("hello mailslot");
 		    	System.out.println("Wrote to mailslot ok");
