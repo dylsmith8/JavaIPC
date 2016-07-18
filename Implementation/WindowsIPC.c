@@ -675,7 +675,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
   (JNIEnv * env, jobject obj, jstring message) {
 
-    HWND hwnd;
+    HWND hwnd = 0;
     // get the message
     const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
     printf("Mapped message size in bytes: %d", strlen(str));
@@ -684,7 +684,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
     COPYDATASTRUCT cds;
     cds.dwData = 1;
     cds.cbData = sizeof(TCHAR) * (_tcslen(lpszString) + 1);
-    cds.lpData = lpszString;
+    cds.lpData = (TCHAR*)lpszString;
     SendMessage(HWND_BROADCAST, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
     return 0; // success
   }
@@ -696,7 +696,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
   (JNIEnv * env, jobject obj) {
-    
+    LPARAM lParam;
     COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
     if (WM_COPYDATA)
     {
