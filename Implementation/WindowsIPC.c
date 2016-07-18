@@ -10,6 +10,10 @@ Implementation of native functions
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifdef _MSC_VER
+ #pragma comment(lib, "user32.lib")
+#endif
+
 #include <jni.h>
 #include <stdio.h>
 #include <errno.h>
@@ -35,6 +39,13 @@ HANDLE pipeHandle;  // global handle for the name pipe
 jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
+
+// sending application
+typedef struct tagMYREC {
+ char s1[80];
+ char s2[80];
+ DWORD n;
+} MYREC;
 
 /*
  * Class:     WindowsIPC
@@ -647,7 +658,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
     }
 
     // return..
-    message = (*env)->NewStringUTF(env, buffer); 
+    message = (*env)->NewStringUTF(env, buffer);
 
     //clean up
     UnmapViewOfFile(buffer);
@@ -655,6 +666,46 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 
     return message; // success
   }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openDataCopy
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    HWND hwnd;
+    // get the message
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+    printf("Mapped message size in bytes: %d", strlen(str));
+
+    LPCTSTR lpszString = "A message";
+    COPYDATASTRUCT cds;
+    cds.dwData = 1;
+    cds.cbData = sizeof(TCHAR) * (_tcslen(lpszString) + 1);
+    cds.lpData = lpszString;
+    SendMessage(HWND_BROADCAST, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
+    return 0; // success
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    getDataCopyMessage
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
+  (JNIEnv * env, jobject obj) {
+    
+    COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
+    if (WM_COPYDATA)
+    {
+      LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
+      printf("%s\n", lpszString);
+    } else return -1;
+    return 0; // success
+  }
+
 
 void main() {
 } // main
