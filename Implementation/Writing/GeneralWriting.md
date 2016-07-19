@@ -95,23 +95,23 @@ is almost a third slower than named pipes. Almost the same results are received 
 a test class that makes use of a Java worker thread to connect to the mailslot server.
 
 
-Once I had mailslots working correctly in terms of pure JNI calls, I proceeded to refine it 
+Once I had mailslots working correctly in terms of pure JNI calls, I proceeded to refine it
 by trying out Java's standard IO mechanims (i.e. `FileInputStream` and `FileOutputStream`).
-I had the intention of trying to improve the performance by limiting the use of 'jumps' to the native 
-code level. Mailslots make use of Windows' usual file system so I thought about accessing the 
+I had the intention of trying to improve the performance by limiting the use of 'jumps' to the native
+code level. Mailslots make use of Windows' usual file system so I thought about accessing the
 slot by simply accessing it in the same sense as a 'file'.
 
-My code created the mailslot in the Java program's main thread with the client 
-created in a separate thread using Java's `Thread` class. The main thread used a WindowsIPC 
-object to call `createMailslot` with the mailslot name specified as a final parameter. 
-The client thread code was implemented in the `run` method. This created a `PrintWriter` object 
+My code created the mailslot in the Java program's main thread with the client
+created in a separate thread using Java's `Thread` class. The main thread used a WindowsIPC
+object to call `createMailslot` with the mailslot name specified as a final parameter.
+The client thread code was implemented in the `run` method. This created a `PrintWriter` object
 that uses a FileOutputStream to write data to the mailslot using `pw.println("Some message");`
-The message is then accessed by the main thread (sine `createMailslot` returns with the message 
-that was written to it.). By using this method, I was able to make use of slots 
-by simply using one JNI call to create the slot. I did not need to 
-call the native method `connectToMailslot` to connect to it and 
+The message is then accessed by the main thread (sine `createMailslot` returns with the message
+that was written to it.). By using this method, I was able to make use of slots
+by simply using one JNI call to create the slot. I did not need to
+call the native method `connectToMailslot` to connect to it and
 send a message. In terms of performance results: a message write to the slot took 132797.1
-ns which is approximately an 85% performance gain by simply limiting a single JNI call. 
+ns which is approximately an 85% performance gain by simply limiting a single JNI call.
 
 # Windows Sockets
 
@@ -264,3 +264,9 @@ it performs significantly faster (as expected) in comparison to the other
 IPC mechamisms. After ten successful timed runs, an average of 84993,3ns
 was yielded. This is considerably faster than the mechanism (**work out some
 % here**).
+
+# Data Copy
+
+
+Data copy is an IPC mechanism that was difficult to implement. During the implementation
+process

@@ -667,6 +667,10 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
     return message; // success
   }
 
+  LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+   return DefWindowProc(hWnd, uMsg, wParam, lParam);
+  }
+
 /*
  * Class:     WindowsIPC
  * Method:    openDataCopy
@@ -675,19 +679,60 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
   (JNIEnv * env, jobject obj, jstring message) {
 
-    HWND hwnd = 0;
     // get the message
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-    printf("Mapped message size in bytes: %d", strlen(str));
+  //  const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+  //  printf("Mapped message size in bytes: %d", strlen(str));
 
+    WNDCLASS WndClass;
+    memset(&WndClass, 0, sizeof(WndClass));
+    WndClass.lpfnWndProc = &DefWindowProc;
+    WndClass.lpszClassName = L"Class";
+    WndClass.hInstance = GetModuleHandle(NULL);
+
+    if (!RegisterClass(&WndClass)) {
+      printf("failed to register class: %d\n", GetLastError());
+      return -1;
+    }
+
+    HWND hwnd;
     LPCTSTR lpszString = "A message";
     COPYDATASTRUCT cds;
+
+    hwnd = CreateWindowEx(0, WndClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
+    if (hwnd == NULL) {
+      printf("Window Creation failed: %d\n", GetLastError());
+      return -1;
+    }
+
     cds.dwData = 1;
     cds.cbData = sizeof(TCHAR) * (_tcslen(lpszString) + 1);
     cds.lpData = (TCHAR*)lpszString;
-    SendMessage(HWND_BROADCAST, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
+    SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
     return 0; // success
   }
+
+  LRESULT WINAPI WndProc( HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam ) {
+
+    HWND hwnd;
+    hwnd = FindWindowEx (
+       HWND_MESSAGE,
+       0,
+       0,
+       0
+    );
+
+    if (hwnd == NULL) {
+      printf("Couldnt find window: %d\n", GetLastError());
+    }
+
+    LPARAM lParam;
+    COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
+    LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
+    printf("%s\n", lpszString);
+
+    return 0; // success
+  }
+
 
 /*
  * Class:     WindowsIPC
@@ -696,13 +741,25 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
   (JNIEnv * env, jobject obj) {
+
+/*
+    HWND hwnd;
+    hwnd = FindWindowEx (
+       HWND_MESSAGE,
+       0,
+       0,
+       0
+    );
+
+    if (hwnd == NULL) {
+      printf("Couldnt find window: %d\n", GetLastError());
+    }
+
     LPARAM lParam;
     COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
-    if (WM_COPYDATA)
-    {
-      LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
-      printf("%s\n", lpszString);
-    } else return -1;
+    LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
+    printf("%s\n", lpszString);
+*/
     return 0; // success
   }
 
