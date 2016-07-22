@@ -691,14 +691,15 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
     //  get the message
     //  const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
     //  printf("Mapped message size in bytes: %d", strlen(str));
+    MSG msg;
     WNDCLASS WndClass;
+    memset(&WndClass, 0, sizeof(WndClass));
     WndClass.lpfnWndProc = &DefWindowProc;
     WndClass.lpszClassName = L"Class";
     WndClass.hInstance = GetModuleHandle(NULL);
 
     HWND hwnd;
     LPCTSTR messageString = "A message";
-    COPYDATASTRUCT cds;
 
     if (!RegisterClass(&WndClass)) {
       printf("failed to register class: %d\n", GetLastError());
@@ -711,10 +712,16 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
       return -1;
     }
 
-    cds.dwData = 1;
-    cds.cbData = sizeof(char) * (strlen(messageString) + 1);
-    cds.lpData = (char*)messageString;
-    SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
+    //GetMessage loop example.
+    while (GetMessage (&msg, NULL, 0, 0)) {
+        LPARAM lParam;
+        COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
+        LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
+        printf("%s\n", lpszString);
+
+         TranslateMessage (&msg);
+         DispatchMessage (&msg);
+    }
 
     return 0; // success
   }
@@ -732,19 +739,22 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
     hwnd = FindWindowEx (
        HWND_MESSAGE,
        0,
-       "Class",
+       0,
        0
     );
 
+    LPCTSTR messageString = "A message";
+    COPYDATASTRUCT cds;
+
+    cds.dwData = 1;
+    cds.cbData = sizeof(char) * (strlen(messageString) + 1);
+    cds.lpData = (char*)messageString;
+
     if (hwnd == NULL) {
       printf("Couldnt find window: %d\n", GetLastError());
-    }
-
-    LPARAM lParam;
-    COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
-    LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
-    printf("%s\n", lpszString);
-
+      return -1;
+    } else SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
+    
     return 0; // success
   }
 
