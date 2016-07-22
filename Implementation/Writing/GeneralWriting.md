@@ -267,6 +267,41 @@ was yielded. This is considerably faster than the mechanism (**work out some
 
 # Data Copy
 
+#### Refs
 
-Data copy is an IPC mechanism that was difficult to implement. During the implementation
-process
+1. https://msdn.microsoft.com/en-us/library/windows/desktop/ms632599.aspx#message_only
+
+Data copy is an IPC mechanism that was extremely difficult to implement causing much
+frustration. In order to make use of this mechanism for console applications
+(as is the case with this project), a message-only window needs to be created.
+This means that the window that is created is not visible to the end-user of
+the system and is simply used as a means to send and receive messages and essentially
+exists to dispatch messages.
+
+In order to create the invisible window, the programmer has to register a 'class'
+of it prior to calling the code that actually creates it. 'Class' in this sense
+does not refer to the object-oriented concept but merely an abstraction so that
+the operating system is aware of the window's existence. I made use of the struct
+`WNDCLASS` that specifies the attributes of the window that needs to be registered.
+In this struct, aspects such as window style, icons, cursor and background can
+be specified. It is effectively used to specify the UI style. For the purposes of this
+research, I specified the name of the class, the handle to the instance that contains the
+window procedure. I then used `RegisterClass`, passing the struct as an argument.
+
+Since windows identifies all forms belonging to applications by making use of
+handles, I assigned a newly created window using (`CreateWindowEx`) that takes
+the class name and the flag `HWND_MESSAGE` that forces it to be a message-only
+window. I simply left the other parameters such as the width, height, style etc
+of the window as zero and null as needed.
+
+The Window's `COPYDATASTRUCT` is then used to specify the size of the data as well as
+the actual message to be sent. Once this has been performed, I called `SendMessage`
+which is a function that takes the handle to the previously created message-only window,
+the flag `WM_COPYDATA`, as well as the a pointer to the copy data struct containing
+the message.
+
+It appears to be an incredibly clunky way in which to
+implement an IPC mechanism. From my experience of it, it is not worth implementing
+it due to the fact that is only really useful in GUI-based programs. It is not
+worth the trouble in terms of creating an invisible window for a console based applications
+as overheads are sure to be introduced. 
