@@ -40,6 +40,15 @@ to another (i.e. from one Java program to the other). I ran the code ten times a
 timing results. The average time it took to send a message was a respectable 968873.1 ns with a byte size of 40
  ns
 
+# Anonymous Pipes
+
+I decided not to implement anonymous pipes due to its similarity with named pipes.
+Anonymous pipes do not allow any IPC across a network (from MSDN) and are essentially a
+simplified version of Named Pipes. I believe that named pipes are easier to work with
+and allow a lot more flexibility. This is emphasised by the fact that Anonymous Pipes are
+are not full-duplex and essentially do not allow bi-directional data exchange.  
+
+
 # Mailslots
 
 #### Refs
