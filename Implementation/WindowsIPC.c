@@ -10,6 +10,10 @@ Implementation of native functions
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifdef _MSC_VER
+ #pragma comment(lib, "user32.lib")
+#endif
+
 #include <jni.h>
 #include <stdio.h>
 #include <errno.h>
@@ -23,6 +27,7 @@ Implementation of native functions
 #include "WindowsIPC.h" // native methods
 
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "user32.lib")
 
 #define BUFFER_SIZE 1024 // 1K buffer size
 #define SOCKET_DEFAULT_PORT "27015"
@@ -36,6 +41,7 @@ jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
 
+LPCTSTR dcMessage;
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
@@ -647,13 +653,117 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
     }
 
     // return..
-    message = (*env)->NewStringUTF(env, buffer); 
+    message = (*env)->NewStringUTF(env, buffer);
 
     //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
 
     return message; // success
+  }
+
+LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+  LPCSTR msgReceived;
+  if (msg == WM_COPYDATA) {
+    COPYDATASTRUCT* cds = (COPYDATASTRUCT*)lparam;
+    if (cds->dwData) {
+      msgReceived = (LPCSTR)(cds->lpData);
+      printf("%s\n", msgReceived);
+      return TRUE;
+    }
+  }
+  else if (msg == WM_DESTROY) {
+    PostQuitMessage(0);
+    return TRUE;
+  }
+  return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openDataCopy
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
+  (JNIEnv * env, jobject obj) {
+
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+    WNDCLASS windowClass;
+    HWND hwnd;
+    MSG msg;
+
+    memset(&windowClass, 0, sizeof(windowClass));
+    windowClass.lpfnWndProc = &WindowsProcedure;
+    windowClass.lpszClassName = TEXT("WindowsIPCDataCopyClass");
+    windowClass.hInstance = GetModuleHandle(NULL);
+
+    if (!RegisterClass(&windowClass)) {
+      printf("failed to register class: %d\n", GetLastError());
+      return errorForJavaProgram;
+    }
+    else {
+      hwnd = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+      if (hwnd == NULL) {
+        printf("Window Creation failed: %d\n", GetLastError());
+        return errorForJavaProgram;
+      }
+      else {
+        while (GetMessage (&msg, NULL, 0, 0)) {
+         TranslateMessage (&msg);
+         DispatchMessage (&msg);
+        }
+      }
+    }
+    jstring toReturn;
+    toReturn = (*env)->NewStringUTF(env, dcMessage);
+    return toReturn; // success
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    getDataCopyMessage
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
+  (JNIEnv * env, jobject obj, jstring message) {
+
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    LPCTSTR messageString = str;
+    dcMessage = messageString;
+    COPYDATASTRUCT cds;
+    HWND hwnd;
+
+    hwnd = FindWindowEx (
+       HWND_MESSAGE,
+       0,
+       TEXT("WindowsIPCDataCopyClass"),
+       0
+    );
+
+    if (hwnd == NULL) {
+      printf("Couldnt find window: %d\n", GetLastError());
+      return -1;
+    }
+    else {
+      cds.dwData = 1;
+      cds.cbData = sizeof(char) * (strlen(messageString) + 1);
+      cds.lpData = (char*)messageString;
+      if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+        printf("Couldnt send message to window. Error code: %d\n", GetLastError());
+        return -1;
+      }
+      // message sent correctly so now destroy the window
+      if (!SendMessage(hwnd, WM_DESTROY, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+        printf("Couldnt send destroy message to window. Error code: %d\n", GetLastError());
+        return -1;
+      }
+    }
+    (*env)->ReleaseStringUTFChars(env, message, str);
+    return 0; // success
   }
 
 void main() {
