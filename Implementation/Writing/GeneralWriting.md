@@ -270,6 +270,10 @@ was yielded. This is considerably faster than the mechanism (**work out some
 #### Refs
 
 1. https://msdn.microsoft.com/en-us/library/windows/desktop/ms632599.aspx#message_only
+2. https://msdn.microsoft.com/en-us/library/windows/desktop/ms632593(v=vs.85).aspx
+3. https://msdn.microsoft.com/en-us/library/windows/desktop/ms644958(v=vs.85).aspx
+4. https://msdn.microsoft.com/en-us/library/windows/desktop/ms644934(v=vs.85).aspx
+5. https://msdn.microsoft.com/en-us/library/windows/desktop/ms649011(v=vs.85).aspx
 
 Data copy is an IPC mechanism that was extremely difficult to implement causing much
 frustration. In order to make use of this mechanism for console applications
@@ -279,14 +283,17 @@ the system and is simply used as a means to send and receive messages and essent
 exists to dispatch messages.
 
 In order to create the invisible window, the programmer has to register a 'class'
-of it prior to calling the code that actually creates it. 'Class' in this sense
+of it prior to calling the code that actually creates it. This is done in the
+native method `createDataCopyWindow`. 'Class' in this sense
 does not refer to the object-oriented concept but merely an abstraction so that
 the operating system is aware of the window's existence. I made use of the struct
 `WNDCLASS` that specifies the attributes of the window that needs to be registered.
 In this struct, aspects such as window style, icons, cursor and background can
 be specified. It is effectively used to specify the UI style. For the purposes of this
 research, I specified the name of the class, the handle to the instance that contains the
-window procedure. I then used `RegisterClass`, passing the struct as an argument.
+window procedure (in this case a reference to my own function). I then used `RegisterClass`,
+passing the struct as an argument. Since this project is only developing IPC for
+Java console applications, it is not necessary to specify a window style.  
 
 Since windows identifies all forms belonging to applications by making use of
 handles, I assigned a newly created window using (`CreateWindowEx`) that takes
@@ -294,14 +301,45 @@ the class name and the flag `HWND_MESSAGE` that forces it to be a message-only
 window. I simply left the other parameters such as the width, height, style etc
 of the window as zero and null as needed.
 
-The Window's `COPYDATASTRUCT` is then used to specify the size of the data as well as
-the actual message to be sent. Once this has been performed, I called `SendMessage`
-which is a function that takes the handle to the previously created message-only window,
-the flag `WM_COPYDATA`, as well as the a pointer to the copy data struct containing
-the message.
+Once the window has successfully been created, you need to implement a message loop
+so the system will continually poll whether a message has been received or not.
+This was done using the function `GetMessage` in a while loop header using a `MSG` value which consists
+of message data from the window's message queue. In the loop, a call to `TranslateMessage` which
+posts the message to the window's message queue. In addition, a call to `DispatchMessage`
+takes place. This function dispatches the message to my own windows procedure function
+that actually handles the message as necessary.
 
-It appears to be an incredibly clunky way in which to
+The native method `sendsDataCopyMessage` takes a string message and passes it into the JNI.
+Here it is assigned to `dwData` (a pointer to the data) of the `COPYDATASTRUCT` which is a struct that contains data
+to be sent to another application/process. The size in bytes of the data also needs to be specified within
+the struct by setting the property `cbData`. Once this has been done, `SendMessage` can be called
+that takes a handle to the newly-created message only window, the `WM_COPYDATA` flag
+and the data struct containing the message and its related information. If this message
+returns successfully, a subsequent call to `SendMessage` takes place that terminates
+the message only window. This is performed by sending `WM_DESTROY`.
+
+A windows procedure function is a programmer defined winapi function that
+handles any messages received on a window (from MSDN). The function I
+created called `WindowsProcedure` with signature `LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)`
+handles the message received from the native method `sendDataCopyMessage`.
+If the message type received was `WM_COPYDATA`, it means that some message was received
+from another process and needs to be handled. This is done by extracting the
+message from the `COPYDATASTRUCT` property 'lpData' using the following syntax:
+`msgReceived = (LPCSTR)(cds->lpData);` where `cds` is a pointer to a `COPYDATASTRUCT`
+structure. Alternatively, if the message type received was `WM_DESTROY`, this means that
+window needs to be terminated. This is done by using a call to `PostQuitMessage(0)`.
+This terminates the message loop and allows `createDataCopyWindow` to terminate
+and return the message received. In both these cases, returning true in the
+windows procedure is necessary since a message has been correctly handled.
+If a message a type is not recognised and hence not handled, retuning
+`DefWindowProc` takes place which allows default processing to unhandled
+messages.
+
+Data Copy appears to be an incredibly clunky way in which to
 implement an IPC mechanism. From my experience of it, it is not worth implementing
 it due to the fact that is only really useful in GUI-based programs. It is not
 worth the trouble in terms of creating an invisible window for a console based applications
-as overheads are sure to be introduced. 
+as overheads are sure to be introduced, hence code refinement on it is relatively limited.
+As expected, performance is horrendous. It is even slower than sockets. An average of 10
+runs resulted in a runtime of 2455624598ns or 2.46 seconds to send a simple 40 byte
+string message. Not recommended.

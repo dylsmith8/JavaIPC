@@ -9,7 +9,9 @@ public class DataCopySender {
     WindowsIPC winIPC = new WindowsIPC();
 
     // get the message here
+    long time = System.nanoTime();
     String x = winIPC.createDataCopyWindow();
+    System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
     System.out.println("Message in Java: " + x);
   } // main
 } // class

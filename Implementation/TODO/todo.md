@@ -6,4 +6,5 @@
 4. Code refactoring
 5. Record timings of writing to a named pipe using Java's IO
 	- Bug where it doesn't get the message correctly when trying to output it
-6. Change method signatures to `byte` to correctly send varying message sizes across 
+6. Change method signatures to `byte` to correctly send varying message sizes across
+7. BUG: Data copy message prints out null on Java side 
