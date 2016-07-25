@@ -1,0 +1,49 @@
+LD_LIBRARY_PATH=~/Desktop/tests/jni
+export LD_LIBRARY_PATH
+
+JAVAOPTS=-Xmx1000m 
+#JAVA="/usr/bin/java $JAVAOPTS"
+JAVA="/home/immesys/Desktop/jdkwd/jdk7-product-build/build/linux-i586/j2re-image/bin/java $JAVAOPTS"
+RNDS=100
+
+#Remove ping/pong fifos
+rm -f /tmp/fifo_p*
+
+# Socket
+$JAVA PingPongSocket Pong $RNDS & sleep 5 && java PingPongSocket Ping $RNDS
+# read
+# FIFO
+$JAVA PingPongFIFO Pong $RNDS & sleep 5 && java PingPongFIFO Ping $RNDS
+# read
+# Message queue
+$JAVA PingPong Pong $RNDS & sleep 5 && java PingPong Ping $RNDS
+# read
+# Old shared memory
+$JAVA PingPongShm1 Pong $RNDS & sleep 5 && java PingPongShm1 Ping $RNDS
+# read
+# Shared memory
+$JAVA PingPongShm Pong $RNDS & sleep 5 && java PingPongShm Ping $RNDS
+# read
+
+# Now do variable data size runs
+for ds in 40 400 4000 40000
+do
+  #Remove ping/pong fifos
+  rm -f /tmp/fifo_p*
+  echo "'*************' Data size is $ds"
+  # Socket
+  $JAVA BPingPongSocket Pong $RNDS $ds & sleep 5 && java BPingPongSocket Ping $RNDS $ds
+  #read
+  # FIFO
+  $JAVA BPingPongFIFO Pong $RNDS $ds & sleep 5 && java BPingPongFIFO Ping $RNDS $ds
+  #read
+  # Message queue
+  $JAVA BPingPong Pong $RNDS $ds & sleep 5 && java BPingPong Ping $RNDS $ds
+  #read
+  # Old shared memory
+  $JAVA BPingPongShm1 Pong $RNDS $ds & sleep 5 && java BPingPongShm1 Ping $RNDS $ds
+  #read
+  # Shared memory
+  $JAVA BPingPongShm Pong $RNDS $ds & sleep 5 && java BPingPongShm Ping $RNDS $ds
+  #read
+done
