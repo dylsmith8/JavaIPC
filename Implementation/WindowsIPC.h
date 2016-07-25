@@ -81,19 +81,19 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 
 /*
  * Class:     WindowsIPC
- * Method:    openDataCopy
- * Signature: (Ljava/lang/String;)I
+ * Method:    createDataCopyWindow
+ * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
-  (JNIEnv *, jobject, jstring);
+JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
+  (JNIEnv *, jobject);
 
 /*
  * Class:     WindowsIPC
- * Method:    getDataCopyMessage
- * Signature: ()I
+ * Method:    sendDataCopyMessage
+ * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
-  (JNIEnv *, jobject);
+JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
+  (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus
 }

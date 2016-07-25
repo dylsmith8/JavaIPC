@@ -7,7 +7,7 @@
 public class DataCopyReceiver {
   public static void main (String [] args) {
     WindowsIPC winIPC = new WindowsIPC();
-    if (winIPC.getDataCopyMessage() == 0)
+    if (winIPC.sendDataCopyMessage("this is the message sent from java") == 0)
       System.out.println("Got data copy message successfully");
     else
       System.out.println("Failed to get data copy message");

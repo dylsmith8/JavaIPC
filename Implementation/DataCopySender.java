@@ -8,7 +8,7 @@ public class DataCopySender {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
 
-    if (winIPC.openDataCopy("message") == 0)
+    if (winIPC.createDataCopyWindow() == 0)
       System.out.println("Data copy successful");
     else
       System.out.println("Data copy failed");

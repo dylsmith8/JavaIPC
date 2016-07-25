@@ -27,6 +27,7 @@ Implementation of native functions
 #include "WindowsIPC.h" // native methods
 
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "user32.lib")
 
 #define BUFFER_SIZE 1024 // 1K buffer size
 #define SOCKET_DEFAULT_PORT "27015"
@@ -667,17 +668,17 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
     return message; // success
   }
 
-LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
- return DefWindowProc(hWnd, uMsg, wParam, lParam);
-}
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-  switch (message) {
-  case WM_COPYDATA:
-        COPYDATASTRUCT* copy_data = (COPYDATASTRUCT*)(lParam);
-        const char* str = (const char* )(copy_data->lpData);
-        printf("Message (%u): %.*s\n", copy_data->dwData, (int)copy_data->cbData, str);
+LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+  LPCSTR msgReceived;
+  if (msg == WM_COPYDATA) {
+    COPYDATASTRUCT* cds = (COPYDATASTRUCT*)lparam;
+    if (cds->dwData) {
+      msgReceived = (LPCSTR)(cds->lpData);
+      printf("%s\n", msgReceived);
+      return TRUE;
+    }
   }
+  return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
 /*
@@ -685,44 +686,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
  * Method:    openDataCopy
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
-  (JNIEnv * env, jobject obj, jstring message) {
+JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
+  (JNIEnv * env, jobject obj) {
 
-    //  get the message
-    //  const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-    //  printf("Mapped message size in bytes: %d", strlen(str));
-    MSG msg;
-    WNDCLASS WndClass;
-    memset(&WndClass, 0, sizeof(WndClass));
-    WndClass.lpfnWndProc = &DefWindowProc;
-    WndClass.lpszClassName = L"Class";
-    WndClass.hInstance = GetModuleHandle(NULL);
-
+    WNDCLASS windowClass;
     HWND hwnd;
-    LPCTSTR messageString = "A message";
+    MSG msg;
 
-    if (!RegisterClass(&WndClass)) {
+    memset(&windowClass, 0, sizeof(windowClass));
+    windowClass.lpfnWndProc = &WindowsProcedure;
+    windowClass.lpszClassName = TEXT("WindowsIPCDataCopyClass");
+    windowClass.hInstance = GetModuleHandle(NULL);
+
+    if (!RegisterClass(&windowClass)) {
       printf("failed to register class: %d\n", GetLastError());
       return -1;
     }
-
-    hwnd = CreateWindowEx(0, WndClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
-    if (hwnd == NULL) {
-      printf("Window Creation failed: %d\n", GetLastError());
-      return -1;
-    }
-
-    //GetMessage loop example.
-    while (GetMessage (&msg, NULL, 0, 0)) {
-        LPARAM lParam;
-        COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
-        LPCTSTR lpszString = (LPCTSTR)(pcds->lpData);
-        printf("%s\n", lpszString);
-
+    else {
+      hwnd = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+      if (hwnd == NULL) {
+        printf("Window Creation failed: %d\n", GetLastError());
+        return -1;
+      }
+      else {
+        while (GetMessage (&msg, NULL, 0, 0)) {
          TranslateMessage (&msg);
          DispatchMessage (&msg);
+        }
+      }
     }
-
     return 0; // success
   }
 
@@ -732,32 +724,38 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openDataCopy
  * Method:    getDataCopyMessage
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_getDataCopyMessage
-  (JNIEnv * env, jobject obj) {
+JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
+  (JNIEnv * env, jobject obj, jstring message) {
 
+    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+
+    LPCTSTR messageString = str;
+    COPYDATASTRUCT cds;
     HWND hwnd;
+
     hwnd = FindWindowEx (
        HWND_MESSAGE,
        0,
-       0,
+       TEXT("WindowsIPCDataCopyClass"),
        0
     );
-
-    LPCTSTR messageString = "A message";
-    COPYDATASTRUCT cds;
-
-    cds.dwData = 1;
-    cds.cbData = sizeof(char) * (strlen(messageString) + 1);
-    cds.lpData = (char*)messageString;
 
     if (hwnd == NULL) {
       printf("Couldnt find window: %d\n", GetLastError());
       return -1;
-    } else SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds);
-    
+    }
+    else {
+      cds.dwData = 1;
+      cds.cbData = sizeof(char) * (strlen(messageString) + 1);
+      cds.lpData = (char*)messageString;
+      if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+        printf("Couldnt send message to window. Error code: %d\n", GetLastError());
+        return -1;
+      }
+    }
+    (*env)->ReleaseStringUTFChars(env, message, str);
     return 0; // success
   }
-
 
 void main() {
 } // main

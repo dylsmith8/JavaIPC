@@ -118,14 +118,16 @@ public class WindowsIPC {
   public native String openFileMapping();
 
   /*
-    Send data using WM_DATACOPY
+    Create a message-only window that a message can be sent to
   */
-  public native int openDataCopy(String message);
+  public native int createDataCopyWindow();
 
   /*
-    Get the data sent across from SendMessage
+    Use SendMessage to send a data copy message to an exisiting message-only
+    window
   */
-  public native int getDataCopyMessage ();
+  public native int sendDataCopyMessage (String message);
+  
   /*
   Load the native library
   */
