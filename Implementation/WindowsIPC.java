@@ -120,14 +120,14 @@ public class WindowsIPC {
   /*
     Create a message-only window that a message can be sent to
   */
-  public native int createDataCopyWindow();
+  public native String createDataCopyWindow();
 
   /*
     Use SendMessage to send a data copy message to an exisiting message-only
     window
   */
   public native int sendDataCopyMessage (String message);
-  
+
   /*
   Load the native library
   */

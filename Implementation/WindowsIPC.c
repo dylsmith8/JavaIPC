@@ -41,13 +41,7 @@ jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
 
-// sending application
-typedef struct tagMYREC {
- char s1[80];
- char s2[80];
- DWORD n;
-} MYREC;
-
+LPCTSTR dcMessage;
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
@@ -678,6 +672,10 @@ LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
       return TRUE;
     }
   }
+  else if (msg == WM_DESTROY) {
+    PostQuitMessage(0);
+    return TRUE;
+  }
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
@@ -686,8 +684,12 @@ LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
  * Method:    openDataCopy
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
   (JNIEnv * env, jobject obj) {
+
+    char error[60] = "Error";
+    jstring errorForJavaProgram;
+    errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     WNDCLASS windowClass;
     HWND hwnd;
@@ -700,13 +702,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
 
     if (!RegisterClass(&windowClass)) {
       printf("failed to register class: %d\n", GetLastError());
-      return -1;
+      return errorForJavaProgram;
     }
     else {
       hwnd = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
       if (hwnd == NULL) {
         printf("Window Creation failed: %d\n", GetLastError());
-        return -1;
+        return errorForJavaProgram;
       }
       else {
         while (GetMessage (&msg, NULL, 0, 0)) {
@@ -715,9 +717,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
         }
       }
     }
-    return 0; // success
+    jstring toReturn;
+    toReturn = (*env)->NewStringUTF(env, dcMessage);
+    return toReturn; // success
   }
-
 
 /*
  * Class:     WindowsIPC
@@ -730,6 +733,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
     const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
 
     LPCTSTR messageString = str;
+    dcMessage = messageString;
     COPYDATASTRUCT cds;
     HWND hwnd;
 
@@ -750,6 +754,11 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
       cds.lpData = (char*)messageString;
       if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
         printf("Couldnt send message to window. Error code: %d\n", GetLastError());
+        return -1;
+      }
+      // message sent correctly so now destroy the window
+      if (!SendMessage(hwnd, WM_DESTROY, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+        printf("Couldnt send destroy message to window. Error code: %d\n", GetLastError());
         return -1;
       }
     }

@@ -82,9 +82,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 /*
  * Class:     WindowsIPC
  * Method:    createDataCopyWindow
- * Signature: ()I
+ * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createDataCopyWindow
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
   (JNIEnv *, jobject);
 
 /*
