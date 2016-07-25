@@ -10,9 +10,17 @@ extern "C" {
 /*
  * Class:     WindowsIPC
  * Method:    createMailslot
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    connectToMailslot
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createMailslot
+JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -37,6 +45,54 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openWinsock
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createWinsockClient
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createFileMapping
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openFileMapping
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createDataCopyWindow
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    sendDataCopyMessage
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
   (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus
