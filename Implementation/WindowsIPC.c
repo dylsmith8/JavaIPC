@@ -188,6 +188,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
   (JNIEnv * env, jobject obj, jstring pipeName) {
+
+    DWORD cbBytes;
+    HANDLE hAnonPipeRead;
+    HANDLE hAnonPipeWrite;
+    jboolean pipe;
+
+    pipe = CreatePipe (
+      hAnonPipeRead,
+      hAnonPipeWrite,
+      NULL,
+      1024
+    );
+
+    if (!pipe) return -1;
+
     return -1;
   } // createpipe
 
