@@ -127,16 +127,16 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
-  (JNIEnv * env, jobject obj, jstring message) {
+  (JNIEnv * env, jobject obj, jbyteArray message) {
 
     jint retval = 0;
     char buffer [BUFFER_SIZE]; // 1K
     DWORD cbBytes;
 
     // read the message
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-
-    printf("named pipe message size in bytes: %d", strlen(str));
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    jsize arrLen = (*env)->GetArrayLength(env, message);
+    printf("named pipe message size in bytes: %d", arrLen);
 
     // check the string
     if (str == NULL) return -1; // out of memory
@@ -175,9 +175,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     }
 
     // free memory allocated to the message
-    (*env)->ReleaseStringUTFChars(env, message, str);
+    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     CloseHandle(pipeHandle);
-
     return retval;
   }
 
