@@ -6,15 +6,15 @@
 
  import java.io.*;
  public class MailslotsThread {
- 	public static void main (String[] args) {	
+ 	public static void main (String[] args) {
 		WindowsIPC winIPC = new WindowsIPC();
 		final String MAILSLOT_NAME = "\\\\.\\mailslot\\javaMailslot";
 
-		// create the client thread 
+		// create the client thread
 		Thread t = new Thread(new MailslotThread(MAILSLOT_NAME));
 	    t.start();
 
-	    // create the mailslot 
+	    // create the mailslot
     	String x = winIPC.createMailslot(MAILSLOT_NAME);
 		System.out.println("This is the message in Java: " + x);
  	}
@@ -24,14 +24,17 @@
  		public MailslotThread (String mailslotName) {
  			this.mailslotName = mailslotName;
  		}
- 		
+
  		public void run() {
  			try {
  				// creates a client and deposits a message into the slot
-				PrintWriter pw = new PrintWriter (new FileOutputStream (mailslotName));
-		    	pw.println("hello mailslot");
-		    	System.out.println("Wrote to mailslot ok");
-		    	pw.close();
+        byte [] data = new byte[40000];
+        long time = System.nanoTime();
+			  PrintWriter pw = new PrintWriter (new FileOutputStream (mailslotName));
+        System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
+	    	pw.println(data);
+	    	System.out.println("Wrote to mailslot ok");
+	    	pw.close();
  			} catch (IOException e) {
  				e.printStackTrace();
  			}

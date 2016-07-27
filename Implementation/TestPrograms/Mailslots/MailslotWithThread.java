@@ -23,10 +23,10 @@ public class MailslotWithThread {
 
   private static class MailslotThread implements Runnable {
     WindowsIPC winIPC = new WindowsIPC();
-
+    byte [] data = new byte[400];
     public void run() {
      long time = System.nanoTime();
-     if (winIPC.connectToMailslot("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
+     if (winIPC.connectToMailslot(data) == 0)
         System.out.println("Message dumped fine");
      else
         System.out.println("Message dump failed");
