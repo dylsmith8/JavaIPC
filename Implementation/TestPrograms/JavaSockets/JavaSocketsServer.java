@@ -9,23 +9,9 @@ import java.net.*;
 import java.io.*;
 public class JavaSocketsServer {
   public static void main(String[] args) {
-
     final int PORT = 5060;
-    try {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Waiting for client to connect on port " + serverSocket.getLocalPort() + "...");
-
-        Socket server = serverSocket.accept();
-
-        DataInputStream in = new DataInputStream(server.getInputStream());
-        String x = in.readUTF();
-        System.out.println(x);
-
-        DataOutputStream out = new DataOutputStream(server.getOutputStream());
-        out.writeUTF("Echo: " + x);
-        server.close();
-    } catch(IOException e) {
-        e.printStackTrace();
-      }
+    WindowsIPC winIPC = new WindowsIPC();
+    String x = winIPC.createJavaSocketServer(PORT);
+    System.out.println("Message in Java: " + x);
   } // main
 } // class

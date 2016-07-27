@@ -62,7 +62,6 @@ public class WindowsIPC {
     Create a Java Sockets Server (no JNI) on local host at specific port
   */
   public String createJavaSocketServer(int port) {
-    String messageFromClient = "";
     try {
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Waiting for client to connect on port " + serverSocket.getLocalPort() + "...");
@@ -70,34 +69,39 @@ public class WindowsIPC {
         Socket server = serverSocket.accept();
 
         DataInputStream in = new DataInputStream(server.getInputStream());
-        messageFromClient = in.readUTF();
+        int length = in.readInt();
+        byte[] messageRcv = new byte[length];
 
-        DataOutputStream out = new DataOutputStream(server.getOutputStream());
-        out.writeUTF("Echo: " + messageFromClient);
+        if (length > 0)
+          in.readFully(messageRcv, 0, messageRcv.length);
+
+      //  DataOutputStream out = new DataOutputStream(server.getOutputStream());
+      //  out.writeUTF("Echo: " + messageFromClient);
 
         server.close();
     } catch(IOException e) {
         e.printStackTrace();
       }
-    return messageFromClient; // return the message sent from the client
+    return ""; // return the message sent from the client
   }
 
   /*
     Create a Java socket client that connects to a Java socket server (should be called after createJavaSocketServer)
   */
-  public int createJavaSocketClient(String host, int port, String message) {
+  public int createJavaSocketClient(String host, int port, byte[] message) {
     try {
       System.out.println("Connecting to " + host + " on port " + port);
       Socket client = new Socket(host, port);
 
       OutputStream outToServer = client.getOutputStream();
       DataOutputStream out = new DataOutputStream(outToServer);
-      out.writeUTF(message);
+      out.writeInt(message.length);
+      out.write(message);
 
-      InputStream inFromServer = client.getInputStream();
-      DataInputStream in = new DataInputStream(inFromServer);
+    //  InputStream inFromServer = client.getInputStream();
+    //  DataInputStream in = new DataInputStream(inFromServer);
 
-      System.out.println(in.readUTF()); // print server echo
+    //  System.out.println(in.readUTF()); // print server echo
       client.close();
 
     } catch (IOException e) {

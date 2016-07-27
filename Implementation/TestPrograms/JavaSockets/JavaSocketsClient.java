@@ -12,26 +12,13 @@
 
   public class JavaSocketsClient {
       public static void main(String[] args) throws IOException {
-
-        final String HOST_NAME = "127.0.0.1"; // localhost
-        final int PORT = 5060; // arb port number
-        byte [] data = new byte[40];
-        try {
-          System.out.println("Connecting to " + HOST_NAME + " on port " + PORT);
-          Socket client = new Socket(HOST_NAME, PORT);
-
-          OutputStream outToServer = client.getOutputStream();
-          DataOutputStream out = new DataOutputStream(outToServer);
-          out.writeUTF("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW"); // write a 40 byte message
-
-          InputStream inFromServer = client.getInputStream();
-          DataInputStream in = new DataInputStream(inFromServer);
-
-          System.out.println(in.readUTF()); // print server echo
-          client.close();
-
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+      WindowsIPC winIPC = new WindowsIPC();
+      byte[] data = new byte[40000];
+      long time = System.nanoTime();
+      if (winIPC.createJavaSocketClient("127.0.0.1", 5060, data) == 0)
+        System.out.println("Client connected and sent message successfully");
+      else
+        System.out.println("An error occured whilst connecting");
+      System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
       }
   }

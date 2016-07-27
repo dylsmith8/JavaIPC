@@ -18,11 +18,11 @@ public class JavaSocketsWithThread {
 
   private static class JavaSocketsThread implements Runnable {
     WindowsIPC winIPC = new WindowsIPC();
-
+    byte[] data = new byte[40000];
     public void run() {
       long time = System.nanoTime();
-      // write a 40 byte message 
-      if (winIPC.createJavaSocketClient("127.0.0.1", 5060, "awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
+      // write a 40 byte message
+      if (winIPC.createJavaSocketClient("127.0.0.1", 5060, data) == 0)
         System.out.println("Client connected and sent message successfully");
       else
         System.out.println("An error occured whilst connecting");
