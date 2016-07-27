@@ -56,7 +56,7 @@ public class WindowsIPC {
   /*
     Create a Winsock client
   */
-  public native int createWinsockClient(String message);
+  public native int createWinsockClient(byte[] message);
 
   /*
     Create a Java Sockets Server (no JNI) on local host at specific port

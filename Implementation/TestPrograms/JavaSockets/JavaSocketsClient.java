@@ -12,10 +12,10 @@
 
   public class JavaSocketsClient {
       public static void main(String[] args) throws IOException {
-        
+
         final String HOST_NAME = "127.0.0.1"; // localhost
         final int PORT = 5060; // arb port number
-
+        byte [] data = new byte[40];
         try {
           System.out.println("Connecting to " + HOST_NAME + " on port " + PORT);
           Socket client = new Socket(HOST_NAME, PORT);
