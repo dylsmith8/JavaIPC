@@ -18,10 +18,10 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
 /*
  * Class:     WindowsIPC
  * Method:    connectToMailslot
- * Signature: (Ljava/lang/String;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jbyteArray);
 
 /*
  * Class:     WindowsIPC

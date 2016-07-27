@@ -269,16 +269,15 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
-  (JNIEnv * env, jobject obj, jstring message) {
+  (JNIEnv * env, jobject obj, jbyteArray message) {
 
     jint retval = 0;
-    //char buffer[100] = " this is a message";
     DWORD cbBytes;
     jboolean result;  // stores the result of the WriteFile
 
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-    printf("mailslot message size in bytes: %d", strlen(str));
-
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    jsize arrLen = (*env)->GetArrayLength(env, message);
+    printf("mailslot message size in bytes: %d", arrLen);
 
     // connect to existing mailslot
     mailslotHandle = CreateFile (
@@ -308,6 +307,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
     if (!result || cbBytes != strlen(str) + 1) return -1;
     else printf("Dump successful\n");
 
+    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     CloseHandle(mailslotHandle);
     return retval;
   } // connect to mailslot

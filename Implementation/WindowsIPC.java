@@ -22,7 +22,7 @@ public class WindowsIPC {
     native method connects to an exisiting mailslot
     created by a previous call of createMailslot
   */
-  public native int connectToMailslot(String message);
+  public native int connectToMailslot(byte[] message);
 
 
   /*
