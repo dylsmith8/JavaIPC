@@ -45,7 +45,7 @@ public class WindowsIPC {
     Creates a client that will connect to an existing named pipe
     and sends a message as a string
   */
-  public native int createNamedPipeClient(String message);
+  public native int createNamedPipeClient(byte[] message);
 
 
   /*
@@ -141,6 +141,6 @@ public class WindowsIPC {
   public static void main(String[] args) {
       WindowsIPC winIPC = new WindowsIPC();
 
-      System.out.println("Build Successful\n");
+      System.out.println("Windows Interprocess Communication Build Successful\n");
   }
 } // class
