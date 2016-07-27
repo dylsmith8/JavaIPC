@@ -450,11 +450,11 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
-  (JNIEnv * env, jobject obj, jstring message) {
+  (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-
-    printf("Message size in bytes: %d\n", (int) strlen(str));
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    jsize arrLen = (*env)->GetArrayLength(env, message);
+    printf("Message size in bytes: %d\n", arrLen);
 
     WSADATA wsaData; // this will contain information about the socket. Is a struct
 
@@ -518,7 +518,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     }
 
     // Send an initial buffer
-    iResult = send(ConnectSocket, str, (int) strlen(str), 0);
+    iResult = send(ConnectSocket, str, arrLen, 0);
     if (iResult == SOCKET_ERROR) {
       printf("send failed: %d\n", WSAGetLastError());
       closesocket(ConnectSocket);
@@ -563,7 +563,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     WSACleanup(); // terminate use of ws2_32.dll
 
     // free memory allocated to the message
-    (*env)->ReleaseStringUTFChars(env, message, str);
+    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
 
     return 0;
   } // createWinsockClient
