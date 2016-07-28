@@ -130,7 +130,7 @@ public class WindowsIPC {
     Use SendMessage to send a data copy message to an exisiting message-only
     window
   */
-  public native int sendDataCopyMessage (String message);
+  public native int sendDataCopyMessage (byte[] message);
 
   /*
   Load the native library
