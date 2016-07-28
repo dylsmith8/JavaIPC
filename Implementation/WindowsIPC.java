@@ -114,7 +114,7 @@ public class WindowsIPC {
   /*
     Native method that creates a shared memory mapped file
   */
-  public native int createFileMapping (String message);
+  public native int createFileMapping (byte[] message);
 
   /*
     Open an existing file mapping

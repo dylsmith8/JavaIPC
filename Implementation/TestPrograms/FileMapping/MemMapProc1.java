@@ -3,16 +3,16 @@
   Date: 7 July 2016
 
   Simple class to test memmory mapped files
+  Memory maps a byte array
 */
 
 public class MemMapProc1 {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
-
-    if (winIPC.createFileMapping("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
-      System.out.println("File mapping successfully created");
+    byte [] data = new byte[40000];
+    if (winIPC.createFileMapping(data) == 0)
+      System.out.println("File mapping of byte array successfully created");
     else
       System.out.println("File mapping failed");
-
   } // main
 } // class
