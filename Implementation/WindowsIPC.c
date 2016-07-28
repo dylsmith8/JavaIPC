@@ -574,13 +574,14 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
-  (JNIEnv * env, jobject obj, jstring message) {
+  (JNIEnv * env, jobject obj, jbyteArray message) {
 
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
 
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
-    printf("Mapped message size in bytes: %d", strlen(str));
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    jsize arrLen = (*env)->GetArrayLength(env, message);
+    printf("Message size in bytes: %d\n", arrLen);
 
     //create mapping object
     mappedFileHandle = CreateFileMapping (
@@ -618,7 +619,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
-
+    
+    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
   }
 
