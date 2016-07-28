@@ -619,7 +619,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
-    
+
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
   }
@@ -744,9 +744,11 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
-  (JNIEnv * env, jobject obj, jstring message) {
+  (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    const jbyte *str = (*env)->GetStringUTFChars(env, message, NULL);
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    jsize arrLen = (*env)->GetArrayLength(env, message);
+    printf("Message size in bytes: %d\n", arrLen);
 
     LPCTSTR messageString = str;
     dcMessage = messageString;
@@ -778,7 +780,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
         return -1;
       }
     }
-    (*env)->ReleaseStringUTFChars(env, message, str);
+    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
   }
 
