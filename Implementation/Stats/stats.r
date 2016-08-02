@@ -1,166 +1,210 @@
 # Author: Dylan Smith
 # Date: 25 June 2016
+# Modified: 2 August 2016
 # R script that generates stats and graphs based on IPC results
 
-# Named pipes:
-NAMED_PIPES_DATA <- c(
-  1077617,
-  551269,
-  780460,
-  1119150,
-  1043634,
-  926584,
-  1069687,
-  1432920,
-  770265,
-  917145
-)
+# NAMED PIPES
+# =============================================================
+  # DATA (IN NS)
+NAMEDPIPES_MEAN_40_BYTES <- 907855.3
+NAMEDPIPES_MEAN_400_BYTES <- 944254.1
+NAMEDPIPES_MEAN_4000_BYTES <- 896791.9
+NAMEDPIPES_MEAN_40000_BYTES <- 968381.4
+  # IN NANO SECONDS
+cat("Named pipe mean in NS (40 BYTES): \t\t\t", NAMEDPIPES_MEAN_40_BYTES)
+  print("")
+cat("Named pipe mean in NS (400 BYTES): \t\t\t", NAMEDPIPES_MEAN_400_BYTES)
+  print("")
+cat("Named pipe mean in NS (4 000 BYTES): \t\t\t", NAMEDPIPES_MEAN_4000_BYTES)
+  print("")
+cat("Named pipe mean in NS (40 000 BYTES): \t\t\t", NAMEDPIPES_MEAN_40000_BYTES)
+  print("")
+  # IN micro-seconds SECONDS
+cat("Named pipe mean in micro-seconds (40 BYTES): \t\t", NAMEDPIPES_MEAN_40_BYTES / 100)
+  print("")
+cat("Named pipe mean in micro-seconds (400 BYTES): \t\t", NAMEDPIPES_MEAN_400_BYTES / 100)
+  print("")
+cat("Named pipe mean in micro-seconds (4 000 BYTES): \t", NAMEDPIPES_MEAN_4000_BYTES / 100)
+  print("")
+cat("Named pipe mean in micro-seconds (40 000 BYTES): \t", NAMEDPIPES_MEAN_40000_BYTES / 100)
+  print("")
 
-npMean <- mean(NAMED_PIPES_DATA)
-print("Named pipe mean in NS:")
-print(npMean)
-print("Named pipe mean in micro-seconds:")
-print(npMean / 100)
+print("==========================================================")
 
-# Mailslots: Times for JNI read/write
-MAILSLOT_JNI_DATA <- c(
-  887315,
-  864283,
-  831811,
-  1107823,
-  973781,
-  899020,
-  819351,
-  844649,
-  1049675,
-  674737
-)
+# MAILSLOTS (JNI ONLY)
+# ===============================================================
+  # DATA (IN NS)
+MAILSLOTS_JNI_40_BYTES <- 665939
+MAILSLOTS_JNI_400_BYTES <- 870890
+MAILSLOTS_JNI_4000_BYTES <- 971590.7
+MAILSLOTS_JNI_40000_BYTES <- 983258.1
+  #  IN NANO SECONDS
+cat("Mailslots (JNI only) mean in NS (40 bytes):", MAILSLOTS_JNI_40_BYTES)
+  print("")
+cat("Mailslots (JNI only) mean in NS (400 bytes)", MAILSLOTS_JNI_400_BYTES)
+  print("")
+cat("Mailslots (JNI only) mean in NS (40 00 bytes)", MAILSLOTS_JNI_4000_BYTES)
+  print("")
+cat("Mailslots (JNI only) mean in NS (40 000 bytes)", MAILSLOTS_JNI_40000_BYTES)
+  print("")
+  # IN MICRO-SECONDS
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 bytes)", MAILSLOTS_JNI_40_BYTES / 100)
+  print("")
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (400 bytes)", MAILSLOTS_JNI_400_BYTES / 100)
+  print("")
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 00 bytes)", MAILSLOTS_JNI_4000_BYTES / 100)
+  print("")
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 000 bytes)", MAILSLOTS_JNI_40000_BYTES / 100)
+  print("")
 
-msJNIMean <- mean(MAILSLOT_JNI_DATA)
-print("Mailslot JNI mean in NS:")
-print(msJNIMean)
-print("Mailslot JNI mean in micro-seconds:")
-print(msJNIMean/100)
+print("===========================================================")
 
-# Mailslots: Java IO read
-MAILSLOT_JAVA_IO_DATA <- c(
-  131637,
-  142792,
-  135653,
-  172244,
-  130744,
-  81214,
-  136992,
-  123604,
-  134760,
-  138331
-)
+# MAILSLOTS (JAVA IO READ)
+# =================================================================
 
-msJavaIOReadMean <- mean(MAILSLOT_JAVA_IO_DATA)
-print("Mailslot Java IO Read mean NS:")
-print(msJavaIOReadMean)
-print("Mailslot Java IO Read in micro-seconds")
-print(msJavaIOReadMean / 100)
+MAILSLOTS_JAVAIO_40_BYTES <- 212842.3
+MAILSLOTS_JAVAIO_400_BYTES <- 221904.3
+MAILSLOTS_JAVAIO_4000_BYTES <- 224207.5
+MAILSLOTS_JAVAIO_40000_BYTES <- 232136.6
+  # IN NS
+cat("Mailslots (Java IO read) mean in NS (40 BYTES)", MAILSLOTS_JAVAIO_40_BYTES)
+  print("")
+cat("Mailslots (Java IO read) mean in NS (400 BYTES)", MAILSLOTS_JAVAIO_400_BYTES)
+  print("")
+cat("Mailslots (Java IO read) mean in NS (4 000 0BYTES)", MAILSLOTS_JAVAIO_4000_BYTES)
+  print("")
+cat("Mailslots (Java IO read) mean in NS (40 000 BYTES)", MAILSLOTS_JAVAIO_40000_BYTES)
+  print("")
+  #IN MICRO-SECONDS
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 BYTES)", MAILSLOTS_JAVAIO_40_BYTES / 100)
+  print("")
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (400 BYTES)", MAILSLOTS_JAVAIO_400_BYTES / 100)
+  print("")
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (4 000 0BYTES)", MAILSLOTS_JAVAIO_4000_BYTES / 100)
+  print("")
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 000 BYTES)", MAILSLOTS_JAVAIO_40000_BYTES / 100)
+  print("")
+print("===========================================================")
 
-# Winsock
-WINSOCK_DATA <- c(
-  2504495,
-  2651374,
-  2703858,
-  3002902,
-  2988554,
-  2392731,
-  2601534,
-  2953061,
-  2869993,
-  2567551
-)
+# WINSOCK
+# =================================================================
+  # DATA
+WINSOCK_40_BYTES <- 2661302.3
+WINSOCK_400_BYTES <- 2907674
+WINSOCK_4000_BYTES <- 3105262.2
+WINSOCK_40000_BYTES <- 39800788.5
+  # IN NS
+cat("Winsock mean in NS (40 BYTES): ", WINSOCK_40_BYTES)
+  print("")
+cat("Winsock mean in NS (400 BYTES): ", WINSOCK_400_BYTES)
+  print("")
+cat("Winsock mean in NS (4 000 BYTES): ", WINSOCK_4000_BYTES)
+  print("")
+cat("Winsock mean in NS (40 000 BYTES): ", WINSOCK_40000_BYTES)
+  print("")
+  # IN MICRO-SECONDS
+cat("Winsock mean in MICRO-SECONDS (40 BYTES): ", WINSOCK_40_BYTES / 100)
+  print("")
+cat("Winsock mean in MICRO-SECONDS (400 BYTES): ", WINSOCK_400_BYTES / 100)
+  print("")
+cat("Winsock mean in MICRO-SECONDS (4 000 BYTES): ", WINSOCK_4000_BYTES / 100)
+  print("")
+cat("Winsock mean in MICRO-SECONDS (40 000 BYTES): ", WINSOCK_40000_BYTES / 100)
+  print("")
+print("===========================================================")
 
-winsockMean <- mean(WINSOCK_DATA)
-print("Winsock Mean in NS:")
-print(winsockMean / 2)
-print("Winsock mean in micro-seconds")
-print((winsockMean / 2) / 100)
+# JAVA SOCKETS
+# =================================================================
+  # DATA
+JSOCKETS_40_BYTES <- 6039177.6
+JSOCKETS_400_BYTES <- 6016447.6
+JSOCKETS_4000_BYTES <- 6217622.3
+JSOCKETS_40000_BYTES <- 6285624.7
+  # IN NS
+cat("Java Sockets mean in NS (40 BYTES): ", JSOCKETS_40_BYTES)
+  print("")
+cat("Java Sockets mean in NS (400 BYTES): ", JSOCKETS_400_BYTES)
+  print("")
+cat("Java Sockets mean in NS (4 000 BYTES): ", JSOCKETS_4000_BYTES)
+  print("")
+cat("Java Sockets mean in NS (40 000 BYTES): ", JSOCKETS_40000_BYTES)
+  print("")
+  # IN micro-seconds
+cat("Java Sockets mean in MICRO-SECONDS (40 BYTES): ", JSOCKETS_40_BYTES / 100)
+  print("")
+cat("Java Sockets mean in MICRO-SECONDS (400 BYTES): ", JSOCKETS_400_BYTES / 100)
+  print("")
+cat("Java Sockets mean in MICRO-SECONDS (4 000 BYTES): ", JSOCKETS_4000_BYTES / 100)
+  print("")
+cat("Java Sockets mean in MICRO-SECONDS (40 000 BYTES): ", JSOCKETS_40000_BYTES / 100)
+  print("")
+print("===========================================================")
 
-# Java Sockets
-JAVA_SOCKETS_DATA <- c(
-  6751526,
-  5226476,
-  5336353,
-  5476813,
-  5819657,
-  5788695,
-  5524766,
-  8326795,
-  6031479,
-  5402429
-)
+# MEMORY MAPPING
+# =================================================================
+  # DATA
+MEM_MAP_40_BYTES <- 84653.6
+MEM_MAP_400_BYTES <- 86239.4
+MEM_MAP_4000_BYTES <- 95339.1
+MEM_MAP_40000_BYTES <- 119353.3
+  # IN NS
+cat("Mem Map mean in NS (40 Bytes): ", MEM_MAP_40_BYTES)
+  print("")
+cat("Mem Map mean in NS (400 Bytes): ", MEM_MAP_400_BYTES)
+  print("")
+cat("Mem Map mean in NS (4 000 Bytes): ", MEM_MAP_4000_BYTES)
+  print("")
+cat("Mem Map mean in NS (40 000 Bytes): ", MEM_MAP_40000_BYTES)
+  print("")
+ # IN MICRO-SECONDS
+cat("Mem Map mean in MICRO-SECONDS (40 Bytes): ", MEM_MAP_40_BYTES / 100)
+  print("")
+cat("Mem Map mean in MICRO-SECONDS (400 Bytes): ", MEM_MAP_400_BYTES / 100)
+  print("")
+cat("Mem Map mean in MICRO-SECONDS (4 000 Bytes): ", MEM_MAP_4000_BYTES / 100)
+  print("")
+cat("Mem Map mean in MICRO-SECONDS (40 000 Bytes): ", MEM_MAP_40000_BYTES / 100)
+  print("")
+print("===========================================================")
 
-javaSocketsMean <- mean(JAVA_SOCKETS_DATA)
-print("Java Sockets Mean in NS:")
-print(javaSocketsMean / 2)
-print("Java Sockets mean in micro-seconds")
-print((javaSocketsMean / 2) / 100)
+# DATA COPY
+# =================================================================
+  # DATA IN MS
+DC_40_BYTES <- 2223.011622
+DC_400_BYTES <- 1977.594735
+DC_4000_BYTES <- 1973.904978
+DC_40000_BYTES <- 2523.616091
 
-# Memory mapping without synchronisation
-MEM_MAP_DATA <- c(
-  90241,
-  75516,
-  80047,
-  71363,
-  74006,
-  107610,
-  114407,
-  72873,
-  89487,
-  74383
-)
+cat("Data Copy mean in milliseconds (40 Bytes): ", DC_40_BYTES)
+  print("")
+cat("Data Copy mean in milliseconds (400 Bytes): ", DC_400_BYTES)
+  print("")
+cat("Data Copy mean in milliseconds (4 000 Bytes): ", DC_4000_BYTES)
+  print("")
+cat("Data Copy mean in milliseconds (40 000 Bytes): ", DC_40000_BYTES)
+  print("")
+print("===========================================================")
 
-memMapMean <- mean(MEM_MAP_DATA)
-print("Memory Map mean without sync in NS:")
-print(memMapMean)
-print("Memory Map mean without sync in micro-seconds")
-print(memMapMean / 100)
-
-# Data Copy
-DATACOPY_DATA <- c(
-  1531657528,
-  1886643750,
-  2850938176,
-  2932208342,
-  2216775322,
-  3080610911,
-  3229107120,
-  2996263458,
-  2272719241,
-  1559322136
-)
-
-dataCopyMean <- mean(DATACOPY_DATA)
-print("Data Copy mean in NS:")
-print(dataCopyMean)
-print("Data Copy mean in micro-seconds")
-print(dataCopyMean / 100)
 
 # Some graph gen
   # 1) bar plot without Data Copy
-    options(scipen=8)
-    data <- c(
-    npMean,
-    msJNIMean,
-    msJavaIOReadMean,
-    (winsockMean / 2),
-    (javaSocketsMean / 2),
-    memMapMean
-    )
-    png(file = "resultsInNS.png")
-    barplot(
-      data,
-      main="40 Byte Message Sent",
-      xlab="Windows IPC mechanims",
-      ylab="Time in NS",
-      ylim=c(0, 3500000),
-      space=3,
-      names.arg=c("NP", "MS (JNI)", "MS (IO)", "Winsock", "Java Socks", "Mem Map")
-    )
-    dev.off()
+#    options(scipen=8)
+#    data <- c(
+#    npMean,
+#    msJNIMean,
+#    msJavaIOReadMean,
+#    (winsockMean / 2),
+#    (javaSocketsMean / 2),
+#    memMapMean
+#    )
+#    png(file = "resultsInNS.png")
+#    barplot(
+#      data,
+  #    main="40 Byte Message Sent",
+  #    xlab="Windows IPC mechanims",
+    #  ylab="Time in NS",
+  #    ylim=c(0, 3500000),
+  #    space=3,
+  #    names.arg=c("NP", "MS (JNI)", "MS (IO)", "Winsock", "Java Socks", "Mem Map")
+#    )
+#    dev.off()
