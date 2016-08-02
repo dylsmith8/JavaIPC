@@ -185,7 +185,28 @@ cat("Data Copy mean in milliseconds (40 000 Bytes): ", DC_40000_BYTES)
   print("")
 print("===========================================================")
 
+# GRAPH GEN
+# =============================================================
 
+# 1) JAVA SOCKETS LINE GRAPH
+
+JS_VECTOR <- c(
+JSOCKETS_40_BYTES / 100,
+JSOCKETS_400_BYTES / 100,
+JSOCKETS_4000_BYTES / 100,
+JSOCKETS_40000_BYTES / 100
+)
+png(file = "JavaSocketsLineChart.png")
+plot(
+  JS_VECTOR,
+  type="o",
+  col="red",
+  xlab="Byte size",
+  ylab="time in micro-seconds",
+  main="Java Sockets Performance",
+)
+axis(1, at=1:4, lab=c("40","400","4 000","40 000"))
+dev.off()
 # Some graph gen
   # 1) bar plot without Data Copy
 #    options(scipen=8)
