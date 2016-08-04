@@ -20,13 +20,13 @@ cat("Named pipe mean in NS (4 000 BYTES): \t\t\t", NAMEDPIPES_MEAN_4000_BYTES)
 cat("Named pipe mean in NS (40 000 BYTES): \t\t\t", NAMEDPIPES_MEAN_40000_BYTES)
   print("")
   # IN micro-seconds SECONDS
-cat("Named pipe mean in micro-seconds (40 BYTES): \t\t", NAMEDPIPES_MEAN_40_BYTES / 100)
+cat("Named pipe mean in micro-seconds (40 BYTES): \t\t", NAMEDPIPES_MEAN_40_BYTES / 1000)
   print("")
-cat("Named pipe mean in micro-seconds (400 BYTES): \t\t", NAMEDPIPES_MEAN_400_BYTES / 100)
+cat("Named pipe mean in micro-seconds (400 BYTES): \t\t", NAMEDPIPES_MEAN_400_BYTES / 1000)
   print("")
-cat("Named pipe mean in micro-seconds (4 000 BYTES): \t", NAMEDPIPES_MEAN_4000_BYTES / 100)
+cat("Named pipe mean in micro-seconds (4 000 BYTES): \t", NAMEDPIPES_MEAN_4000_BYTES / 1000)
   print("")
-cat("Named pipe mean in micro-seconds (40 000 BYTES): \t", NAMEDPIPES_MEAN_40000_BYTES / 100)
+cat("Named pipe mean in micro-seconds (40 000 BYTES): \t", NAMEDPIPES_MEAN_40000_BYTES / 1000)
   print("")
 
 print("==========================================================")
@@ -48,13 +48,13 @@ cat("Mailslots (JNI only) mean in NS (40 00 bytes)", MAILSLOTS_JNI_4000_BYTES)
 cat("Mailslots (JNI only) mean in NS (40 000 bytes)", MAILSLOTS_JNI_40000_BYTES)
   print("")
   # IN MICRO-SECONDS
-cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 bytes)", MAILSLOTS_JNI_40_BYTES / 100)
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 bytes)", MAILSLOTS_JNI_40_BYTES / 1000)
   print("")
-cat("Mailslots (JNI only) mean in MICRO-SECONDS (400 bytes)", MAILSLOTS_JNI_400_BYTES / 100)
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (400 bytes)", MAILSLOTS_JNI_400_BYTES / 1000)
   print("")
-cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 00 bytes)", MAILSLOTS_JNI_4000_BYTES / 100)
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 00 bytes)", MAILSLOTS_JNI_4000_BYTES / 1000)
   print("")
-cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 000 bytes)", MAILSLOTS_JNI_40000_BYTES / 100)
+cat("Mailslots (JNI only) mean in MICRO-SECONDS (40 000 bytes)", MAILSLOTS_JNI_40000_BYTES / 1000)
   print("")
 
 print("===========================================================")
@@ -76,13 +76,13 @@ cat("Mailslots (Java IO read) mean in NS (4 000 0BYTES)", MAILSLOTS_JAVAIO_4000_
 cat("Mailslots (Java IO read) mean in NS (40 000 BYTES)", MAILSLOTS_JAVAIO_40000_BYTES)
   print("")
   #IN MICRO-SECONDS
-cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 BYTES)", MAILSLOTS_JAVAIO_40_BYTES / 100)
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 BYTES)", MAILSLOTS_JAVAIO_40_BYTES / 1000)
   print("")
-cat("Mailslots (Java IO read) mean in MICRO-SECONDS (400 BYTES)", MAILSLOTS_JAVAIO_400_BYTES / 100)
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (400 BYTES)", MAILSLOTS_JAVAIO_400_BYTES / 1000)
   print("")
-cat("Mailslots (Java IO read) mean in MICRO-SECONDS (4 000 0BYTES)", MAILSLOTS_JAVAIO_4000_BYTES / 100)
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (4 000 0BYTES)", MAILSLOTS_JAVAIO_4000_BYTES / 1000)
   print("")
-cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 000 BYTES)", MAILSLOTS_JAVAIO_40000_BYTES / 100)
+cat("Mailslots (Java IO read) mean in MICRO-SECONDS (40 000 BYTES)", MAILSLOTS_JAVAIO_40000_BYTES / 1000)
   print("")
 print("===========================================================")
 
@@ -103,13 +103,13 @@ cat("Winsock mean in NS (4 000 BYTES): ", WINSOCK_4000_BYTES)
 cat("Winsock mean in NS (40 000 BYTES): ", WINSOCK_40000_BYTES)
   print("")
   # IN MICRO-SECONDS
-cat("Winsock mean in MICRO-SECONDS (40 BYTES): ", WINSOCK_40_BYTES / 100)
+cat("Winsock mean in MICRO-SECONDS (40 BYTES): ", WINSOCK_40_BYTES / 1000)
   print("")
-cat("Winsock mean in MICRO-SECONDS (400 BYTES): ", WINSOCK_400_BYTES / 100)
+cat("Winsock mean in MICRO-SECONDS (400 BYTES): ", WINSOCK_400_BYTES / 1000)
   print("")
-cat("Winsock mean in MICRO-SECONDS (4 000 BYTES): ", WINSOCK_4000_BYTES / 100)
+cat("Winsock mean in MICRO-SECONDS (4 000 BYTES): ", WINSOCK_4000_BYTES / 1000)
   print("")
-cat("Winsock mean in MICRO-SECONDS (40 000 BYTES): ", WINSOCK_40000_BYTES / 100)
+cat("Winsock mean in MICRO-SECONDS (40 000 BYTES): ", WINSOCK_40000_BYTES / 1000)
   print("")
 print("===========================================================")
 
@@ -117,7 +117,7 @@ print("===========================================================")
 # =================================================================
   # DATA
 JSOCKETS_40_BYTES <- 6039177.6
-JSOCKETS_400_BYTES <- 6016447.6
+JSOCKETS_400_BYTES <- 6046447.6
 JSOCKETS_4000_BYTES <- 6217622.3
 JSOCKETS_40000_BYTES <- 6285624.7
   # IN NS
@@ -130,13 +130,13 @@ cat("Java Sockets mean in NS (4 000 BYTES): ", JSOCKETS_4000_BYTES)
 cat("Java Sockets mean in NS (40 000 BYTES): ", JSOCKETS_40000_BYTES)
   print("")
   # IN micro-seconds
-cat("Java Sockets mean in MICRO-SECONDS (40 BYTES): ", JSOCKETS_40_BYTES / 100)
+cat("Java Sockets mean in MICRO-SECONDS (40 BYTES): ", JSOCKETS_40_BYTES / 1000)
   print("")
-cat("Java Sockets mean in MICRO-SECONDS (400 BYTES): ", JSOCKETS_400_BYTES / 100)
+cat("Java Sockets mean in MICRO-SECONDS (400 BYTES): ", JSOCKETS_400_BYTES / 1000)
   print("")
-cat("Java Sockets mean in MICRO-SECONDS (4 000 BYTES): ", JSOCKETS_4000_BYTES / 100)
+cat("Java Sockets mean in MICRO-SECONDS (4 000 BYTES): ", JSOCKETS_4000_BYTES / 1000)
   print("")
-cat("Java Sockets mean in MICRO-SECONDS (40 000 BYTES): ", JSOCKETS_40000_BYTES / 100)
+cat("Java Sockets mean in MICRO-SECONDS (40 000 BYTES): ", JSOCKETS_40000_BYTES / 1000)
   print("")
 print("===========================================================")
 
@@ -157,31 +157,32 @@ cat("Mem Map mean in NS (4 000 Bytes): ", MEM_MAP_4000_BYTES)
 cat("Mem Map mean in NS (40 000 Bytes): ", MEM_MAP_40000_BYTES)
   print("")
  # IN MICRO-SECONDS
-cat("Mem Map mean in MICRO-SECONDS (40 Bytes): ", MEM_MAP_40_BYTES / 100)
+cat("Mem Map mean in MICRO-SECONDS (40 Bytes): ", MEM_MAP_40_BYTES / 1000)
   print("")
-cat("Mem Map mean in MICRO-SECONDS (400 Bytes): ", MEM_MAP_400_BYTES / 100)
+cat("Mem Map mean in MICRO-SECONDS (400 Bytes): ", MEM_MAP_400_BYTES / 1000)
   print("")
-cat("Mem Map mean in MICRO-SECONDS (4 000 Bytes): ", MEM_MAP_4000_BYTES / 100)
+cat("Mem Map mean in MICRO-SECONDS (4 000 Bytes): ", MEM_MAP_4000_BYTES / 1000)
   print("")
-cat("Mem Map mean in MICRO-SECONDS (40 000 Bytes): ", MEM_MAP_40000_BYTES / 100)
+cat("Mem Map mean in MICRO-SECONDS (40 000 Bytes): ", MEM_MAP_40000_BYTES / 1000)
   print("")
 print("===========================================================")
 
 # DATA COPY
 # =================================================================
-  # DATA IN MS
-DC_40_BYTES <- 2223.011622
-DC_400_BYTES <- 1977.594735
-DC_4000_BYTES <- 1973.904978
-DC_40000_BYTES <- 2523.616091
+  # DATA IN MICRO-SECONDS
+DC_40_BYTES <- 2223011.62
+DC_400_BYTES <- 1977594.735
+DC_4000_BYTES <- 1973904.978
+DC_40000_BYTES <- 2523616.091
 
-cat("Data Copy mean in milliseconds (40 Bytes): ", DC_40_BYTES)
+
+cat("Data Copy mean in MICRO-SECONDS (40 Bytes): ", DC_40_BYTES)
   print("")
-cat("Data Copy mean in milliseconds (400 Bytes): ", DC_400_BYTES)
+cat("Data Copy mean in MICRO-SECONDS (400 Bytes): ", DC_400_BYTES)
   print("")
-cat("Data Copy mean in milliseconds (4 000 Bytes): ", DC_4000_BYTES)
+cat("Data Copy mean in MICRO-SECONDS (4 000 Bytes): ", DC_4000_BYTES)
   print("")
-cat("Data Copy mean in milliseconds (40 000 Bytes): ", DC_40000_BYTES)
+cat("Data Copy mean in MICRO-SECONDS (40 000 Bytes): ", DC_40000_BYTES)
   print("")
 print("===========================================================")
 
@@ -189,35 +190,34 @@ print("===========================================================")
 # =============================================================
 
 # 1) JAVA SOCKETS LINE GRAPH
-
 JS_VECTOR <- c(
-JSOCKETS_40_BYTES / 100,
-JSOCKETS_400_BYTES / 100,
-JSOCKETS_4000_BYTES / 100,
-JSOCKETS_40000_BYTES / 100
+JSOCKETS_40_BYTES / 1000,
+JSOCKETS_400_BYTES / 1000,
+JSOCKETS_4000_BYTES / 1000,
+JSOCKETS_40000_BYTES / 1000
 )
 png(file = "JavaSocketsLineChart.png")
 plot(
   JS_VECTOR,
-  type="o",
   col="red",
-  xlab="Byte size",
-  ylab="time in micro-seconds",
+  xlab="Size of Message in Bytes",
+  ylab="Time to Send in MICRO-SECONDS",
   main="Java Sockets Performance",
+  type='b',
+  xaxt="n",
+  ylim=c(6000, 6400)
 )
-axis(1, at=1:4, lab=c("40","400","4 000","40 000"))
+axis(side=1, at=1:4, lab=c("40","400","4 000","40 000"))
 dev.off()
-# Some graph gen
-  # 1) bar plot without Data Copy
-#    options(scipen=8)
-#    data <- c(
+
+#2) WINDOW API IPC MECHANISMS BAR GRAPH bar plot without Data Copy
+  #  options(scipen=8)
+  #  data <- c(
 #    npMean,
-#    msJNIMean,
-#    msJavaIOReadMean,
+#    msJNIMean,#   msJavaIOReadMean,
 #    (winsockMean / 2),
-#    (javaSocketsMean / 2),
 #    memMapMean
-#    )
+  #  )
 #    png(file = "resultsInNS.png")
 #    barplot(
 #      data,
