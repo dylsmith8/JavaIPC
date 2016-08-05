@@ -1,4 +1,6 @@
-\documentclass[12pt,a4paper,oneside] {newrucsthesis}    % changed default font to 12pt
+% cite = wells(2009) said...
+% citep = (Wells, 2009)
+\documentclass[12pt] {newrucsthesis}    % changed default font to 12pt
 
 	% preamble stuff here
 \usepackage{url}  % to handle urls
@@ -15,8 +17,13 @@
 \usepackage{titlesec}
 \useunder{\uline}{\ul}{}
 \def\code#1{\texttt{#1}}
+\setcounter{secnumdepth}{4}
 
-\renewcommand {\cite} {\citep}  % default for cite is citet in natbib - so change it
+\addto{\captionsenglish}{ % changes the bibliography to reference because we are using babel
+  \renewcommand{\bibname}{References}
+}
+
+%\renewcommand {\cite} {\citep}  % default for cite is citet in natbib - so change it
 \newcommand {\shortcite} {\citeyearpar}  % for date only citations
 
 % \renewcommand\bibname{References}    % if not using newrucsthesis sty file
@@ -44,7 +51,28 @@
 
 
   \ack
-    Blah blah blah -- your acknowledgements here
+    Firstly, I would like to thank my mother, Jennifer Smith, for her unrelenting support,
+    kindness and guidance; not only in my Honours year, but for the entire duration of
+    my time spent at Rhodes University.
+    \\\\
+    I would also like to thank my uncle, David Preston, without whom I would never have
+    been able to attend this prestigious institution. I am privileged and proud to be
+    an alumnus of Rhodes University's Department of Computer Science.
+    \\\\
+    Thank you to my supervisor, Prof. George Wells, for the immensely insightful
+    counsel and guidance throughout the duration of this research.
+    \\\\
+    I would also like to express my utmost gratitude to Nicole Upfold for her undying
+    support and belief in me during the tough parts of this project. Her motivation and her
+    own outstanding work in her scientific field inspired me to conduct my research
+    with much methodical enthusiasm.
+    \\\\
+    I acknowledge and say thank you to my fellow Honours students for a great year.
+    It was an absolute pleasure to share a laboratory with you.
+    \\\\
+    In addition, I would like to acknowledge the financial and technical support of Telkom SA, Tellabs,
+    Easttel, Bright Ideas 39, THRIP and NRF SA (UID 75107) through the Telkom Centre
+    of Excellence in the Department of Computer Science at Rhodes University.
     \newpage
 
   \tableofcontents
@@ -56,11 +84,92 @@
   \listoftables
     \newpage
 
+    % WILL BE EDITED TOWARDS THE END OF THE PROJECT
+  \chapter{Introduction}
+      Java is a widely used general-purpose programming language that supports an object-oriented
+      programming model as well as features such as multithreading, portability and simplicity \citep{JavaIntro}.
+      Java currently lacks support for interprocess communication (IPC) but instead relies on a distributed network
+      programming mechanism  \citep{WellsIPCMultiProc}.
+      This means that Java uses socket communication to communicate with other Java processes (i.e. Java programs
+      with their own distinct address spaces). This approach can be significantly inefficient, as it forces
+      communication to traverse the layers of the protocol stack \citep{WellsIPCJava}.
+      \\\\
+      The lack of IPC features is problematic due to the ubiquity of modern parallel, multicore computing systems.
+      Most machines no longer rely on a uniprocessor model \citep{hayes2007computing}.
+      The ability to perform IPC as well as process synchronisation is fundamental to the design of effective
+      parallel and distributed systems.
+      \\\\
+      Java, however, does provide a mechanism in which it can access native code. This is known as
+      the Java Native Interface (JNI). This framework allows Java programs to access the application
+      programming interface (API) or system calls of the operating system that it is executing on.
+      This is typically done in the native code of C or C++ \citep{LiangJNISpecification}.
+      This means that low-level OS features (memory, I/O, IPC mechanisms and so forth) can be accessed using the
+      JNI framework by making use of native C/C++ code \citep{IBM2009}. As such, this framework can be
+      used to develop an alternative to Java socket IPC due to it allowing programmers to access low-level
+      OS features.
+      \\\\
+      The Linux and Solaris IPC implementations developed by \cite{WellsIPCJava} make use of the JNI framework
+      to implement IPC for the Java programming language, but no such implementation exists for Microsoft Windows
+      or any other OS. The original implementation showed promising results and an attempt to
+      replicate its performance boost on a Microsoft Windows platform served as a large
+      portion of this research. As a result, this required significant research into
+      the internal Windows IPC structures, including communication and synchronisation mechanisms as well as various
+      implementation methodologies. WindowsIPC is the name I have given to the class library I have designed.
 
-  \chapter{Chapter 1}
+    \section{Research Objectives}
+      This research aims to achieve the following objectives:
+      \begin{enumerate}
+        \item Understand Microsoft Windows' IPC mechanisms and present how they can be implemented to provide a communication
+              and synchronisation features for Java processes executing in their own distinct Java Virtual Machines (JVMs).
 
+        \item Understand the Java Native Interface and present how this can be interfaced as efficiently as possible with
+              Windows' APIs.
+
+        \item Design a viable Java library using JNI that will allow Java programmers to write applications that are able to
+              communicate without the use of socket programming. This essentially will provide the
+              language with concurrency mechanisms. In addition, the library will need to demonstrate that
+              it is a more efficient and effective alternative to Java sockets. As such statistical proof needs to be
+              demonstrated.
+
+        \item Since JNI makes use of native code, this presents a significant portability issue. As such recommendations
+              need to be made in terms of a generic IPC design for the Java platform. This is essentially an analysis of
+              generic IPC mechanisms that can be implemented on Linux-based operating systems, Microsoft Windows, MacOS X
+              and so forth.
+      \end{enumerate}
+      % MAY NEED TO EDIT APPROACH AS A I BEGIN WRITING THE METHODOLOGY SECTION IN CHAPTER 3
+    \section{Research Approach}
+      The first phase involved the investigation and understanding of Windows internals
+      and how the operating system implements IPC. This involved examining the Windows
+      API, or more informally WINAPI. It was found that the APIs were immensely complicated
+      in comparison to that of the Unix world and as such, much time was spent on gaining an
+      understanding on how each mechanism could be implemented. Their viability were assessed as
+      well as performance. Concurrent to this, I examined the literature available relevant to
+      multiprocessing in Java as well as any other alternatives that may be possible.
+      \\\\
+      Next, an understanding of how JNI worked was conducted. This involved the creation of simple
+      test programs that made use of native code to perform simple computations such as string and array
+      manipulation. This involved the revision of my C coding ability as well as understanding the Linux
+      implementation of Java IPC. This cemented my understanding of how JNI and native C code interfaces
+      with Java Virtual Machines.
+      \\\\
+      I then initiated the development process once I felt comfortable working with JNI. I assessed each
+      WINAPI and ranked them in order of difficulty in terms of implementation. I started with the lowest rank and
+      proceeded with development. This involved the testing process which ensured that messages were sending correctly
+      between Java programs. I used a test-driven development approach, using junit as a unit testing environment
+      in simple Java programs that used the WindowsIPC class library to ensure that the expected results were obtained.
+      \\\\
+      I then proceeded with performance assessment. Java sockets was used as a benchmark to see if WindowsIPC could
+      produce better message sending times. This involved running each mechanism 10 times and calculating the mean
+      execution time for a specific message size (40, 400, 4 000 and 40 000 bytes). Simple graphical representations
+      of this data was produced to illustrate performance gains.
+      \\\\
+      I then proceeded to investigate the viability of OS independent solutions, since the use of native code invalidates Java's
+      property of portability.
+
+    \section{Document Outline}
+      THIS IS COMPLETED ONCE REST OF DOCUMENT HAS BEEN DONE 
 
   \bibliographystyle{ruauthordate}    % authordate style
-  \bibliography{ref2}   	% load in the info produced from ref2.bib
+  \bibliography{refs2}   	% load in the info produced from ref2.bib
 
 \end{document}

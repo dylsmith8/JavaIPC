@@ -1,2 +1,0 @@
-\select@language {english}
-\contentsline {chapter}{\numberline {1}Chapter 1}{5}
