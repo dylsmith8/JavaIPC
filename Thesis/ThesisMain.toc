@@ -1,0 +1,52 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Introduction}{6}
+\contentsline {section}{\numberline {1.1}Research Objectives}{7}
+\contentsline {section}{\numberline {1.2}Research Approach}{7}
+\contentsline {section}{\numberline {1.3}Document Outline}{8}
+\contentsline {chapter}{\numberline {2}Literature Review}{9}
+\contentsline {section}{\numberline {2.1}Introduction}{9}
+\contentsline {section}{\numberline {2.2}Processes and Interprocess Communication}{10}
+\contentsline {section}{\numberline {2.3}Process Synchronisation}{11}
+\contentsline {subsection}{\numberline {2.3.1}Hardware Synchronisation}{11}
+\contentsline {subsection}{\numberline {2.3.2}Software Synchronisation}{12}
+\contentsline {section}{\numberline {2.4}Java Concurrency Mechanisms}{13}
+\contentsline {subsection}{\numberline {2.4.1}java.lang.Thread}{13}
+\contentsline {subsection}{\numberline {2.4.2}java.util.concurrent}{15}
+\contentsline {subsubsection}{\numberline {2.4.2.1}Semaphore}{15}
+\contentsline {subsubsection}{\numberline {2.4.2.2}CountDownLatch}{15}
+\contentsline {subsubsection}{\numberline {2.4.2.3}CyclicBarrier}{16}
+\contentsline {subsubsection}{\numberline {2.4.2.4}Phaser}{16}
+\contentsline {subsubsection}{\numberline {2.4.2.5}Exchanger}{16}
+\contentsline {subsection}{\numberline {2.4.3}IPC}{16}
+\contentsline {subsubsection}{\numberline {2.4.3.1}Loopback Mechanism}{17}
+\contentsline {subsubsection}{\numberline {2.4.3.2}Remote Method Invocation}{17}
+\contentsline {section}{\numberline {2.5}Java Native Interface}{17}
+\contentsline {subsection}{\numberline {2.5.1}How It Works}{18}
+\contentsline {subsection}{\numberline {2.5.2}Performance}{19}
+\contentsline {section}{\numberline {2.6}Linux and Solaris IPC Implementation}{19}
+\contentsline {subsection}{\numberline {2.6.1}Initial Implementation}{19}
+\contentsline {subsubsection}{\numberline {2.6.1.1}Problems Encountered}{20}
+\contentsline {subsubsection}{\numberline {2.6.1.2}Results}{20}
+\contentsline {subsection}{\numberline {2.6.2}Shared Memory Object Framework Model (SMOF)}{20}
+\contentsline {subsubsection}{\numberline {2.6.2.1}Results}{20}
+\contentsline {section}{\numberline {2.7}Windows IPC and Concurrency Mechanisms}{21}
+\contentsline {subsection}{\numberline {2.7.1}Windows Executive}{21}
+\contentsline {subsection}{\numberline {2.7.2}The Windows Process}{22}
+\contentsline {subsubsection}{\numberline {2.7.2.1}CreateProcess()}{22}
+\contentsline {subsection}{\numberline {2.7.3}Windows' Client/Server Model}{23}
+\contentsline {subsection}{\numberline {2.7.4}Process Communication Mechanisms}{23}
+\contentsline {subsubsection}{\numberline {2.7.4.1}Clipboard}{23}
+\contentsline {subsubsection}{\numberline {2.7.4.2}Component Object Model (COM)}{23}
+\contentsline {subsubsection}{\numberline {2.7.4.3}Data Copy}{24}
+\contentsline {subsubsection}{\numberline {2.7.4.4}Dynamic Data Exchange (DDE)}{24}
+\contentsline {subsubsection}{\numberline {2.7.4.5}File Mapping}{24}
+\contentsline {subsubsection}{\numberline {2.7.4.6}Mailslots}{25}
+\contentsline {subsubsection}{\numberline {2.7.4.7}Pipes}{25}
+\contentsline {subsubsection}{\numberline {2.7.4.8}Remote Procedure Call (RPC)}{26}
+\contentsline {subsubsection}{\numberline {2.7.4.9}Windows Sockets (Winsock 2)}{26}
+\contentsline {subsection}{\numberline {2.7.5}Windows Interprocess Synchronisation}{27}
+\contentsline {section}{\numberline {2.8}IPC in Mac OS X and Generic Considerations}{27}
+\contentsline {subsection}{\numberline {2.8.1}Mac OS X}{27}
+\contentsline {subsection}{\numberline {2.8.2}Generic Considerations}{27}
+\contentsline {section}{\numberline {2.9}Chapter Summary}{28}
+\contentsline {chapter}{\numberline {3}Design and Methodology}{29}
