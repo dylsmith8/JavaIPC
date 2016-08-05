@@ -1,5 +1,6 @@
 % cite = wells(2009) said...
 % citep = (Wells, 2009)
+% THINK ABOUT CREATING A GLOSSARY AT THE END
 \documentclass[12pt] {newrucsthesis}    % changed default font to 12pt
 
 	% preamble stuff here
@@ -85,6 +86,8 @@
     \newpage
 
     % WILL BE EDITED TOWARDS THE END OF THE PROJECT
+
+  % CHAPTER 1
   \chapter{Introduction}
       Java is a widely used general-purpose programming language that supports an object-oriented
       programming model as well as features such as multithreading, portability and simplicity \citep{JavaIntro}.
@@ -167,7 +170,257 @@
       property of portability.
 
     \section{Document Outline}
-      THIS IS COMPLETED ONCE REST OF DOCUMENT HAS BEEN DONE 
+      THIS IS COMPLETED ONCE REST OF DOCUMENT HAS BEEN DONE
+
+  % CHAPTER 2
+  \chapter{Literature Review}
+    \section{Introduction}
+      The purpose of this chapter is to outline methods with which Java concurrency can be implemented in a Microsoft Windows
+      OS environment. The Linux version will be discussed later in this chapter. In addition, it examines literature that is available that may aid the in the
+      development of an enhancement to the Java programming language that will allow access to IPC features on a
+      Windows OS. This chapter will also examine how the JNI can be used as
+      an intermediary between Java and native C code to access low-level OS IPC features. It
+      also investigates the internal IPC mechanisms of Windows (WINAPI). In addition, it will provide a review of IPC
+      mechanisms of other OSes to aid in the design of a generic Java class library to provide the
+      language with IPC functionality, regardless of platform or operating system.
+      \\\\
+      Note: The term ``concurrency" within this text refers to both communication and synchronisation among
+      processes and/or threads that belong to a particular program.
+      When referring to Oracle and Microsoft's API, I simply cite the top-level link to avoid a
+      large number of references to the respective APIs.
+      \\\\
+      It is necessary to include some general background information regarding processes, threads and accepted
+      concurrency mechanisms prior to the discussion of the techniques currently provided by the Java.
+
+    \section{Processes and Interprocess Communication}
+      A process is an abstraction that is created upon program execution - it is effectively an instance
+      of a program that is currently running within its own distinct address space \citep{modernOS}.
+      All processes consist of three sections, namely code, data and a stack. The code section contains
+      executable code (generally machine instructions) that the program is currently dealing with.
+      The data section contains global variables and data that may be dynamically allocated in the heap
+      as the program progresses through its execution stages. The stack contains any local variables that are in use.
+      Programs that consist of a single process are known as \textit{sequential} whereas programs that consist
+      of multiple processes (and possibly threads) are known as \textit{concurrent}. The underlying operating
+      system (OS) is responsible for managing program processes and their subsequent threads \citep{garg2005concurrent}.
+      Processes may also consist of implicit variables, for example the program counter as well as the
+      contents of data registers. The state of the process may change as it executes statements \citep{trainBook}.
+
+      Different OSs generally create new processes and implement IPC in different ways, but some form of commonalities
+      are present, such as process identifiers and synchronisation techniques. Unix-based OSs generally make use of the
+      system call \code{fork()} to create child processes. Then additional system calls, such as \code{shmget()}, can be
+      used to access the native IPC mechanisms provided by the OS. In addition, Unix provides a comprehensive threading
+      mechanism known as POSIX Threads which aid in multithreading programming \citep{linuxKernal}. An OS such as Microsoft
+      Windows uses a function called \code{CreateProc()} which handles process creation as well as features such as the
+      process status, security and data structure access \citep{modernOS}.
+
+      Parallel programming includes the concept of IPC. All programs that deal with multiple processes may require a
+      method with which to communicate to achieve the desired results. IPC can then be defined as the method with
+      which processes (either belonging to a single program or multiple programs) pass messages to one another - i.e.
+      process to process. This is an important concept that allows the flow of information between programs running on
+      multicore machines \citep{modernOS}. IPC can introduce significant problems in terms of synchronisation,
+      including race conditions and deadlock.
+
+      The Java programming model currently does not provide comprehensive support for an efficient IPC mechanism which
+      appears to be a significant design flaw. This is particularly apparent due to the fact that multicore processing
+      and the presence of parallel programming is almost ubiquitous in modern software engineering. In addition, Java
+      is a popular language that is used on many industry development jobs and this coupled with multicore processing's
+      ubiquity adds to the problem.
+
+    \section{Process Synchronisation}
+      Correct synchronisation is a concept that is fundamental to concurrent program execution. It is an inherent property
+      of IPC and is often blanketed under this term. Various languages implement synchronisation in different ways. This
+      text will present a generic discussion of synchronisation and then proceed to mechanisms provided by Java,
+      particularly within a multithreading environment.
+
+      When designing programs that access data concurrently, it is important to design them in such a way that data is
+      consistently synchronised. This will avoid data corruption if multiple processes or threads are trying to access
+      data that is shared \citep{garg2005concurrent}. Race conditions are anomalies that can arise when multiple processes
+      are attempting to read and write data that is shared among them. This is a significant problem if the final result
+      of a process depends on this data, but it was previously modified by some other arbitrary process - effectively data
+      has been corrupted and is now not relevant to the current process \citep{modernOS}. Data or a piece of code that is
+      shared among processes, and more specifically threads, is called the \textit{critical region} or \textit{critical section}.
+      These can include aspects such as shared resources, memory locations and other related data. In order to avoid
+      race conditions, some form of mutual exclusion needs to be implemented in order to protect data from
+      rogue processes that may change it in the critical region and hence alter the results of another process. It
+      should lock the data when the program is inside of it and then release it for any other process that requires
+      it at that point in time \citep{multithreadingwin32}. Various software-implemented synchronisation techniques
+      exist in addition to hardware-dependent techniques.
+
+      \subsection{Hardware Synchronisation}
+        In terms of hardware, synchronisation may be achieved by disabling interrupts on the CPU as soon as the process
+        enters a critical region. This means that no process can switch into the OS's kernel mode (i.e. context switch)
+        and alter the region's values. When the process exits the critical region, interrupts are then re-enabled
+        \citep{garg2005concurrent}. This is not a feasible solution because additional problems arise. In addition,
+        this is not possible in multicore CPU designs, as one would have to disable multiple CPU cores. Another problem
+        that may arise by giving the program the ability to disable interrupts is that there is no way of telling if the
+        program will re-enable interrupts at a later stage which poses significant problems to system functionality \citep{modernOS}.
+
+      \subsection{Software Synchronisation}
+        Software mutual exclusion can be implemented relatively easily with \textit{busy-waiting} techniques. A
+        simple implementation makes use of lock variable that initially has a value of 0. A process subsequently
+        tests this value to determine if a lock is in place, protecting a critical region. If the lock value is 0,
+        a process will enter the region and set the lock to 1. An additional process can test this lock variable to
+        determine the region's status. If the value is set, said process will wait until the region is available.
+        This technique still has a race condition on the lock value. This can be prevented by making use
+        of \textit{strict alternation}. This is known as a spin lock where an integer value is used to determine
+        which process can enter the critical region. Process A will enter a critical region whilst process B
+        continuously monitors the integer \code{turn} value \citep{modernOS}. This creates a number of significant
+        problems as more overhead is introduced as the number of competing processes increases. In addition,
+        other processes can be delayed by a slower process that is using the lock \citep{spinlocks1994}.
+
+        To overcome this, it is better to put competing processes to sleep to preserve CPU time. This can be illustrated by
+        means of the Producer-Consumer problem. If a shared memory buffer exists (which can be abstracted as an array),
+        a producer will deposit information and a producer will extract information from the buffer. Problems can arise if
+        the consumer attempts to extract an item from an empty buffer. Conversely, a producer cannot deposit an item if the
+        buffer is full. This can be circumvented by putting the producer and consumer to sleep until these conditions have
+        been satisfied. As a result, \code{wakeup} and \code{sleep} are called when necessary. Problems can arise if a \code{wakeup}
+        is made to a process that is not currently sleeping as this call will be lost.
+
+        As such, a better approach to synchronisation is to make use of semaphores, which was pioneered by \cite{dijkstraSems}.
+        Semaphores introduce the concept of an integer \code{s} that stores a non-negative value. Once \code{s} has been given a
+        value, only two atomic operations may be performed on them: \code{up(s)} and \code{down(s)}. \code{up} effectively
+        means ``to release" the process whereas \code{down} means allow the process ``to pass" \citep{trainBook}.
+
+        Semaphores need to ensure that the checking and subsequent changing of \code{s} is an atomic operation, therefore
+        it is necessary to introduce a lock until the operation has been completed. It is also necessary in a multicore
+        system \citep{modernOS}. Semaphores are not without disadvantages including the fact that they are a low-level
+        concept that can be prone to bugs and can be difficult to implement. If the programmer does not keep track of calls
+        to \code{up} and \code{down}, deadlock can occur. In addition, semaphore usage can become more complicated as the
+        complexity of accompanying algorithms increases \citep{semDisadvantages}.
+
+    \section{Java Concurrency Mechanisms}
+      The Java programming language, at present, provides a significantly comprehensive support structure
+      for multithreading programming by means of the \code{java.util.concurrent} package and \code{Thread}
+      class. Version 5.0 of the Java platform introduced high-level APIs for concurrency in the
+      language \citep{JavaAPI}. As such, the language provides multithreading programming facilities
+      through means of \code{java.lang.Thread}, methods declared as \code{synchronised} which utilise
+      monitor concepts such as wait, notify and signal. These are described substantially in Oracle's
+      Java API documentation, particularly within \code{java.util.concurrent}. In terms of IPC, Java only
+      supports RMI which is classified as distributed computing, however it can be used locally using
+      localhost (127.0.0.1) \citep{WellsIPCJava}.
+
+      \subsection{java.lang.Thread}
+        Java provides \code{java.lang.Thread} that allows the explicit creation of thread objects \citep{garg2005concurrent}.
+        There are two alternative ways in which this can be utilised. Firstly, classes can be written that inherit from the
+        \code{Thread} class, which allow the programmer to override the provided \code{run} method.
+        Subsequently \code{start{}} can be invoked to execute the thread \citep{garg2005concurrent}.
+        The following code adapted from \cite{JavaAPI} (the Java API) illustrates thread creation:
+        \pagebreak
+        \begin{verbatim}
+        class MyThread extends Thread {
+           // this method overrides the run method in Thread
+           public void run() {
+              // do something
+           }
+           public static void main (String[] args) {
+                MyThread t = new MyThread(); // create thread object
+                t.start();					// launch thread
+           }
+        }
+        \end{verbatim}
+
+        The alternative method with which to make use of Java's threading mechanism is to implement the
+        \code{Runnable} interface. This class can then be used to implement the \code{run} method.
+        An instance of this class is then passed into the constructor of the \code{Thread} class and
+        then started by calling \code{start} directly, as illustrated below:
+        \begin{verbatim}
+        MyClass c = new MyClass();
+        new Thread(c).start();
+        \end{verbatim}
+
+        Java threads  have their local variables organised as a stack, and can access shared variables and
+        are generally used as lightweight processes running within the context of a single JVM \citep{trainBook}.
+        Java threads support priority and have a minimum and maximum priority value and contain get and set methods.
+        This can heuristically affect OS schedulers \citep{LeaConcurrentProgInJavaDesignPrinciplesPatterns}.
+        According to \cite{HydeJavaThreadProg}, making use of Java threads can have some benefits as well as
+        drawbacks. Benefits can include better interaction with the user, the simulation of simultaneous activities, use of multiple processors as well as performing other tasks whilst waiting for slow IO operations. Drawbacks exist, such as each \code{Thread} instantiation,
+        which introduces overhead and use of memory resources. They also require processor resources such as
+        starting, scheduling, stopping and killing of \code{Thread} objects. According to \cite{JavaAPI},
+        Java concurrency mostly concerns itself with threads as opposed to multiple processes. In addition,
+        most instances of the JVM run as a single process with associated child threads as units of execution.
+        This is a distinct concept from that of IPC between Java processes belonging to separate JVMs.
+
+      \subsection{java.util.concurrent}
+        The package \code{java.util.concurrent} (which is affiliated with \code{Thread}) provides concurrency
+        classes that include synchronisation mechanisms that contain operations that set and inspect thread state,
+        various mutual exclusion solutions as well as barriers and queues and so forth \citep{Lea_java.util.concurrent}.
+        These facilities are sufficient for developing good multithreaded applications which aim to eliminate problems
+        that can arise such as deadlock, race conditions and unintentional thread interaction \citep{WellsEfficientIPCJava}.
+
+        \cite{JavaAPI} provides tools such as concurrent data structures like  \code{ConcurrentLinkedQueue}
+        which contains methods such as \code{peek}, \code{poll} and so forth which allows threads to access
+        concurrent data. The \code{Executor} interface is a framework that essentially allows the creation of
+        custom thread-like systems and for defining lightweight task frameworks.
+
+        In terms of synchronisation, the package offers \code{Semaphore},
+        \code{CountDownLatch}, \code{CyclicBarrier}, \code{Phaser} and
+        \code{Exchanger}.
+
+        \subsubsection{Semaphore}
+          The \code{Semaphore} class in Java is implemented in the form of a counting semaphore which
+          keeps track of a set of permits. The method \code{acquire} tries to gain access to a resource but
+          blocks if a permit is unavailable. Conversely the method \code{release} adds a permit to a resource.
+          Permits are kept tracked of in the form of a simple integer counter. The constructor accepts a fairness
+          parameter which ensures that no thread starvation occurs if a thread tries to acquire a resource but is
+          continually blocked \citep{JavaAPI}.
+
+        \subsubsection{CountDownLatch}
+          This essentially introduces a lock until another thread completes its operations.
+          The object is given a count and the method \code{await} blocks until the count reaches zero.
+          \code{countDown()} decrements the count on each invocation.
+          Subsequently threads are released. This class can be used as an on
+          or off latch by giving it a count of one \citep{JavaAPI}.
+
+        \subsubsection{CyclicBarrier}
+          This class implements barrier functionality that allows for groups of threads to catch
+          up to a certain point before proceeding and is cyclic in nature since the barrier can be
+          reused once the waiting threads are released \citep{JavaAPI}.
+
+        \subsubsection{Phaser}
+          This barrier technique is very similar to \code{CyclicBarrier} but allows a flexible addition of
+          threads to be added at any time (unlike \code{CyclicBarrier}). A simple method called \code{register()}
+          can be invoked to add a task. A phase number is initially generated and increases to a maximum number
+          previously defined once all tasks reach the phaser number. It is wrapped around once the count reaches
+          the maximum number. Phasers support a concept known as \textit{Tiering} that allows subphasers to be created,
+          which can reduce the amount of contention if there are a large number of tasks \cite{JavaAPI}.
+
+        \subsubsection{Exchanger}
+          This defines a point at which threads can pair together and exchange elements. On entry,
+          threads pair and exchange their partner's object. This is performed within the \code{exchange()}
+          method \citep{JavaAPI}.
+
+      The mechanisms provided by \code{java.util.concurrent} ultimately require a shared
+      address space for JVM threads to synchronise and have common access to shared objects
+      \citep{WellsIPCMultiProc}.
+
+      \subsection{IPC}
+        Current Java IPC mechanisms appear to make use of distributed programming features such
+        as the ``loopback" mechanism, remote method invocation (RMI) and the Java Message Service (JMS).
+
+        \subsubsection{Loopback Mechanism}
+          According to \cite{WellsIPCJava}, Java provides a robust mechanism for communication in terms of distributed computing using the Internet Protocol's (IP) loopback system using 127.0.0.1. This means that communication can take place between multiple processes
+          on a single machine. This takes the form of socket programming using TCP/UDP by using Java's standard socket
+          API \citep{taboada2013javaforHPC}. Messages can be encapsulated into packets and passed into the IP stack as
+          necessary. Messages can then passed to programs running in separate JVMs using this loopback mechanism,
+          thereby providing a form of IPC. \cite{taboada2013javaforHPC} states that Java's network support over TCP/UDP
+          tends to be an ineffient communication mechanism. In addition, research conducted by \cite{WellsIPCMultiProc} also
+          found it to be inefficient. This was due to messages having to traverse the protocol stack.
+
+        \subsubsection{Remote Method Invocation}
+          Remote Method Invocation (RMI) allows methods to be called in an object that are running within
+          the context of another JVM. Arguments of the called method are packetised and sent over a network to a
+          JVM. They are then passed into the remote method as necessary. The object to which the remote method belongs
+          should provide safety mechanisms as the caller does not know about the callee's state \citep{JavaConcurrencyInPractice}.
+          RMI can be used in conjunction with the loopback method discussed above. A similar mechanism known as Common Object
+          Request Broker Architecture (CORBA) also involves the remote calling of methods to provide a distributed solution
+          \citep{WellsIPCMultiProc}. Yet another form of distributed communication is the Java Message Service (JMS) which
+          provides communication between applications \citep{JavaAPI}. RMI provides a solution to IPC but according to
+          \cite{taboada2013javaforHPC}, at a cost of poor performance.
+
+        It should be emphasised that the current facilities in Java are inherently thread-based as opposed to
+        process-based. The current network communication mechanism through the IP stack has significant overhead.
+
+
 
   \bibliographystyle{ruauthordate}    % authordate style
   \bibliography{refs2}   	% load in the info produced from ref2.bib
