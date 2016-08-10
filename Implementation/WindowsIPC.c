@@ -41,6 +41,24 @@ jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
 
+/*
+  Return a handle to Windows Semaphore
+*/
+HANDLE WINAPI CreateWinSemaphore () {
+  HANDLE winSem = CreateSemaphore (
+    NULL, // default security
+    0,  // initial count
+    1, // max sem count
+    "JavaIPCSem"
+  );
+
+  if (winSem == NULL) {
+    printf("Semaphore creation failed: %d", GetLastError());
+    return NULL;
+  }
+  return winSem;
+} // MySemaphore
+
 LPCTSTR dcMessage;
 /*
  * Class:     WindowsIPC
@@ -613,9 +631,29 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
       return -1;
     }
 
-    CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
-     _getch(); // keeps console open for now until you press enter --> will allow the function to return
+    // here you would want to lock --> so create semaphore
+    HANDLE semaphore = CreateWinSemaphore();
+    if (semaphore == NULL) {
+      printf("Semaphore creation failed");
+      return -1;
+    }
+    else {
+    //  switch (waitResult) {
+      //  case WAIT_OBJECT_0:
+          printf("Got here\n");
+          CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
+      //    break;
+    //    case WAIT_TIMEOUT:
+      //    printf("cannot create");
+    //      break;
+  //    } // switch
+      _getch(); // keeps console open for now until you press enter --> will allow the function to return
+    } // else
 
+    if (!ReleaseSemaphore(semaphore, 1, NULL)) {
+      printf("Semaphore release failed: %d\n", GetLastError());
+      return -1;
+    }
     //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
@@ -654,18 +692,25 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
       return errorForJavaProgram;
     }
 
-    buffer = (LPTSTR) MapViewOfFile(
-      mappedFileHandle,
-      FILE_MAP_ALL_ACCESS,
-      0,
-      0,
-      BUFFER_SIZE
-    );
-
-    if (buffer == NULL) {
-      printf("Could not map view");
-      CloseHandle(mappedFileHandle);
-      return errorForJavaProgram;
+    // read data here, must be a critical region
+    HANDLE sem = OpenSemaphore(EVENT_ALL_ACCESS, FALSE, "JavaIPCSem");
+    DWORD waitResult = WaitForSingleObject(sem, INFINITE);
+    printf("Gothere \n");
+    if (waitResult == WAIT_OBJECT_0) {
+      buffer = (LPTSTR) MapViewOfFile(
+        mappedFileHandle,
+        FILE_MAP_ALL_ACCESS,
+        0,
+        0,
+        BUFFER_SIZE
+      );
+    }
+    else {
+      if (buffer == NULL) {
+        printf("Could not map view");
+        CloseHandle(mappedFileHandle);
+        return errorForJavaProgram;
+      }
     }
 
     // return..
