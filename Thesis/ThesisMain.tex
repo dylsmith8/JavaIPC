@@ -724,7 +724,7 @@
     % GIVE A GENERAL OVER VIEW OF THE CHAPTER HERE ONCE IT IS COMPLETE
     The following chapter provides a broad, high-level view of the methodologies used during the
     design and implementation phase of the project. In addition, it discusses the scope of the project
-    and how it correlates to the objectives outlined in section \ref{researchobjectives}.
+    and how it correlates to the objectives outlined in Section \ref{researchobjectives}.
     \\\\
     Section \ref{hardwareused} discusses the hardware that was used for the project.
     Section \ref{softwareused} discusses the software and other related technologies that were used
@@ -733,8 +733,37 @@
     Section \ref{devapproach} discusses how I went about designing the actual system. It outlines the
     order in which I implemented each Windows IPC mechanism, why this was the case and any benefits this
     may have yielded. Finally, section \ref{results} discusses the methodology used to collect and analyse results.
+
     \section{Hardware} \label{hardwareused} % hardware used in the project
+      I used one primary desktop machine for the majority of the project's development. It had the following specifications:
+        \begin{itemize}
+          \item Intel Core i5-6400 Quad-Core CPU @ 2.70 GHz.
+          \item 8 GB DDR3 RAM.
+          \item WDC 400 GB HDD.
+          \item Intel HD Graphics 530 with 4 116 MB VRAM.
+          \item Windows 10 Enterprise 64 bit Insider Preview Build 14393.
+        \end{itemize}
+      In addition, a secondary machine was used for development and testing purposes:
+        \begin{itemize}
+          \item	Intel Core i3-2350 Quad-Core Sandy Bridge CPU @ 2.30 GHz.
+        	\item	4 GB DDR3 RAM @ 655 MHz.
+          \item WD 1 TB HDD
+        	\item NVIDIA GeForce GT 520MX GPU with 1024 MB VRAM.
+          \item Windows 10 Home 64-bit Build 10856.
+        \end{itemize}
+
     \section{Software} \label{softwareused}% software used in the project
+      Various software packages were used for the project, including critical and
+      non-critical support packages.
+        \subsection{Critical Software}
+          Since the project's focus is on IPC mechanisms on a Microsoft Windows
+          platform, it is palpable that a Windows operating system was used. As described in
+          Section \ref{hardwareused}, two versions of 64 bit Windows 10 were used on two separate
+          machines during the implementation and testing phases of the project. I consciously made
+          the decision to develop on Windows 10 because it generally provides
+          consistent backwards compatibility \citep{win10BC}. The Windows API is also fully supported
+          by Windows 10 OSes.
+
     \section{WindowsIPC Design Approach} \label{devapproach}
     \section{Results Analysis} \label{results}
 

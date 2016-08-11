@@ -379,14 +379,6 @@ year = {1996}
   review =        {Talks about SMOF --> good for talking about getting around portability issues of java}
 }
 
-@Misc{win10BC,
-  author =       {Scanlon, J},
-  title =        {{How to Run Old Programs on Windows 10}},
-  howpublished = {\url{http://www.techradar.com/news/software/operating-systems/how-to-run-old-programs-on-windows-10-1300470}},
-  year =         {2015},
-  note =         {[Date Accessed: 11 August 2016]}
-}
-
 @Book{WinInt2009,
   title =     {{Windows Internals Covering Windows Server 2008 and Windows Vista}},
   publisher = {Microsoft Press},
