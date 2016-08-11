@@ -15,14 +15,36 @@
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{color}
 \usepackage{titlesec}
 \useunder{\uline}{\ul}{}
 \def\code#1{\texttt{#1}}
 \setcounter{secnumdepth}{4}
 
+
+% SAMPLE BATCH SCRIPT DESCIBING JNI COMPILATION
+\lstset{
+  frame=tb,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
 \addto{\captionsenglish}{ % changes the bibliography to reference because we are using babel
   \renewcommand{\bibname}{References}
 }
+
+\renewcommand{\lstlistlistingname}{List of Code \lstlistingname s} % adds List of to the listings
 
 %\renewcommand {\cite} {\citep}  % default for cite is citet in natbib - so change it
 \newcommand {\shortcite} {\citeyearpar}  % for date only citations
@@ -83,6 +105,9 @@
     \newpage
 
   \listoftables
+    \newpage
+
+  \lstlistoflistings
     \newpage
 
     % WILL BE EDITED TOWARDS THE END OF THE PROJECT
@@ -772,15 +797,15 @@
           make use of the Java Native Interface. I initially installed a 64 bit version of the JDK and
           immediately encountered problems in terms of code compilation with programs that used native
           C code. Upon compilation, my test programs were unable to load the native library and a
-          \code{UnsatisfiedLinkError} exception occured, outlining that it could not load a 32 bit .dll
+          \code{UnsatisfiedLinkError} exception occurred, outlining that it could not load a 32 bit .dll
           on a 64 bit platform. The solution to this was to install a 32 bit JDK (and hence 32 bit
           JVM) and recompile.
           \\\\
           In order to compile the native C code that accesses Windows' IPC mechanisms, a C or C++
           compiler was needed. Since the project is on a Windows platform, the clear choice was the
           Microsoft Visual C++ compiler \footnote{https://www.microsoft.com/en-us/download/details.aspx?id=41151}.
-          It intergrates with Microsoft's Visual Studio Intergrated
-          Development Environemnt (IDE) products but can also be called from the command line by
+          It integrates with Microsoft's Visual Studio Integrated
+          Development Environment (IDE) products but can also be called from the command line by
           executing \code{cl.exe} in the Visual C++ directory, located in Windows' Program Files file structure.
 
         \subsection{Non-critical Software}
@@ -791,23 +816,80 @@
           JUNIT\footnote{http://junit.org/junit4/} is a Java library that provides a unit testing framework. This
           was used to ensure that Java methods performed as expected.
           \\\\
+          The programming language R\footnote{https://www.r-project.org/} was used in the analysis phase of the project, along with Microsoft Excel 2016.
+          The R source code I developed is available with WindowsIPC on the JavaIPC GitHub repository.
+          \\\\
           Atom was the code editor used throughout the development and testing process.
 
     \section{WindowsIPC Design Approach} \label{devapproach}
       The first phase prior to implementation was to become familiar with
-      the JNI framework. This involved designing simple JNI programs to become compentent
-      in terms of how primative data types are handled, how parameters are passed, how memory is
-      allocated and freed and how values are passed between the JVM and native C code. This was fundamental
+      the JNI framework. This involved designing simple JNI programs to become competent
+      in terms of how primitive data types are handled, how parameters are passed, how memory is
+      allocated and freed and how values are passed between the JVM and native C code. Throughout this process,
+      I followed \cite{LiangJNISpecification} which provided well structured and easy to understand
+      JNI examples and tutorials, which greatly aided in the understanding of JNI. This was fundamental
       during the implementation of WindowsIPC since a thorough understanding of how JNI works was needed
       to ensure the stability and usability of the system. Concurrent to this, I cemented my C coding ability since
-      a signficant majority of time was spent developing in C. I also ensured I knew how to compile and build Java programs
+      a significant majority of time was spent developing in C. I also ensured I knew how to compile and build Java programs
       that used JNI. This involved understanding the various flags and include files that needed to be added to the command line.
-      As such, I decided to build the system using the command line and not an IDE using Windows Batch scripts that
-      specified system dependencies and files that were needed to compile and execute the code. I prefered to develop in a
+      As such, I decided to build the system using the command line and not an IDE. As such I made use of Windows Batch scripts that
+      specified system dependencies and files that were needed to compile and execute the code. Listing 3.1 is a
+      snippet of a batch script that generates files required by the system. I preferred to develop in a
       simple code editor as I found that initialising an IDE to use JNI was rather tedious and not worth the time. In addition,
-      complex debuggers would not have been beneficial since parallel development is notoriously hard to debug. 
-    \section{Results Analysis} \label{results}
+      complex debuggers would not have been beneficial since parallel development is notoriously difficult to debug.
 
+      \begin {lstlisting} [caption=Batch Script Snippet]
+        REM create the header file
+        "C:\Program Files (x86)\Java\jdk1.7.0_79\bin\Javah" -jni -classpath
+        "C:\Users\g13s0714\Desktop\CS Honours\GitHub\JavaIPC\Implementation"
+        WindowsIPC
+      \end{lstlisting}
+
+      Once I had gained suitable confidence with using JNI to access native C code,
+      I ranked each Windows IPC mechanism in terms of ease of implementation.
+      I started developing Java Sockets since this is the only method of
+      IPC that Java offers (as mentioned in chapter 2). In addition, I wanted to
+      use this as a benchmark to determine if the other mechanisms perform better.
+      This involved timing message sending between two Java programs that made use of
+      the socket.
+      \\\\
+      % PARAGRAPH WILL BE EDITED ONCE I HAVE COMPLETED DEVELOPMENT
+      Once I had a suitable benchmark from developing Java Sockets, I proceeded with the development of
+      the Windows IPC mechanisms. I first implemented Named Pipes, followed by Mailslots, Windows Sockets,
+      Windows File Mapping (a shared memory equivalent) and finally Data Copy. This entailed analysing and understanding the
+      relevant WINAPI functions that were necessary for their implementation. I found that most of Microsoft Windows' APIs were significantly
+      complex and difficult to understand. This was apparent in the many function parameters and flags that are present
+      in WINAPI functions. I also found that most of the function examples on the Microsoft Developer Network were given in C++ code,
+      which was problematic since WindowsIPC was written in C. As a result, C and C++ syntax is used interchangeably. Ultimately, this did not
+      pose any significant problem, since Visual C++ could handle it's compilation.
+
+      During the implementation of each feature, I tested it by writing small Java test programs that used the native code to send
+      messages to each other. Messages sent were simple byte arrays. The size (in terms of the number of elements)
+      of the array sent were simply hardcoded as 40, 400, 4 000 and 40 0000. For example, a byte array with 400
+      elements represents a message size of 400 bytes. Two Java test programs (for each mechanism) were used to ensure that messages were sent between two
+      distinct Java processes. Following this, I wrote a single Java program for each mechanism that used \code{java.util.concurrent} to create a thread
+      that communicated with the program's main thread. This was achieved by implementing the \code{run} method of the \code{Runnable}
+      interface. The \code{run} method uses an object of WindowsIPC to call method to send a message to the program's main thread. This was done
+      to ensure true communication was possible (i.e. between separate processes as well as threads executing within a single JVM instance).
+
+      % DISCUSSION OF HOW I WENT ABOUT RESULTS ANALYSIS
+    \section{Results Analysis} \label{results}
+      In order to time the execution of each native method as well as the Java Sockets execution time, I used the following Java code:
+      \begin {lstlisting}[caption=Java Timing Code]
+        long time = System.nanoTime();
+        String x = winIPC.openFileMapping(); //Method being timed
+        System.out.println("Time to get message from file mapping: "+ ((System.nanoTime() - time))+ "ns");
+        System.out.println("Message in Java: " + x);
+      \end{lstlisting}
+
+      For each message size, I timed the execution of the method that sent the actual message 10 times and then calculated a mean execution time. I
+      used this figure to determine a speedup in comparison to Java Sockets to illustrate the performance gain
+      that was achieved. Each timing value was copied into an R script that calculated the mean for the relevant IPC mechanism.
+      I also made use of Microsoft Excel to provide a convenient method in which to view results without having to scan through an
+      R script file. Once the mean execution time for each mechanism was calculated, the R script generated various graphs, including line and
+      bar graphs. This provided a graphical way in which to display each mechanism's performance relative to Java Sockets.
+
+  % IN DEPTH DISCUSSION OF EACH WINDOWS IPC METHOD
   \chapter{Implementation of Windows' IPC Mechanisms}
 
   \chapter{Results}
@@ -817,7 +899,7 @@
   \chapter{Conclusion}
 
 
-  \bibliographystyle{ruauthordate}    % authordate style
-  \bibliography{refs2}   	% load in the info produced from ref2.bib
+  \bibliographystyle{ruauthordate}
+  \bibliography{refs2}
 
 \end{document}
