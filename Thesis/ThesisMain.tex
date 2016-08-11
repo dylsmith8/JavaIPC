@@ -757,14 +757,55 @@
       non-critical support packages.
         \subsection{Critical Software}
           Since the project's focus is on IPC mechanisms on a Microsoft Windows
-          platform, it is palpable that a Windows operating system was used. As described in
+          platform, it is palpable that a Microsoft Windows operating system was used. As described in
           Section \ref{hardwareused}, two versions of 64 bit Windows 10 were used on two separate
           machines during the implementation and testing phases of the project. I consciously made
           the decision to develop on Windows 10 because it generally provides
           consistent backwards compatibility \citep{win10BC}. The Windows API is also fully supported
-          by Windows 10 OSes.
+          by Windows 10 OSes \citep{MSDN_API}. In addition, I thought using Windows 10 made the most sense
+          since it is Microsoft's latest OS product. In addition, I wanted to install the Windows 10 Insider Preview
+          to test Bash On Ubuntu On Windows \footnote{https://msdn.microsoft.com/en-us/commandline/wsl/about} (which will be discussed later in this text).
+          \\\\
+          Another fundamental software component of this project is the Java Development Kit. I made
+          use of the Java SE Development Kit 7 \footnote{http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html} or JDK 7 as a 32 bit Java Virtual Machine (JVM).
+          This includes the standard Java APIs as well as the required header files needed to
+          make use of the Java Native Interface. I initially installed a 64 bit version of the JDK and
+          immediately encountered problems in terms of code compilation with programs that used native
+          C code. Upon compilation, my test programs were unable to load the native library and a
+          \code{UnsatisfiedLinkError} exception occured, outlining that it could not load a 32 bit .dll
+          on a 64 bit platform. The solution to this was to install a 32 bit JDK (and hence 32 bit
+          JVM) and recompile.
+          \\\\
+          In order to compile the native C code that accesses Windows' IPC mechanisms, a C or C++
+          compiler was needed. Since the project is on a Windows platform, the clear choice was the
+          Microsoft Visual C++ compiler \footnote{https://www.microsoft.com/en-us/download/details.aspx?id=41151}.
+          It intergrates with Microsoft's Visual Studio Intergrated
+          Development Environemnt (IDE) products but can also be called from the command line by
+          executing \code{cl.exe} in the Visual C++ directory, located in Windows' Program Files file structure.
+
+        \subsection{Non-critical Software}
+          The fundamental support package used throughout this project was GitHub. This served
+          as my version control throughout the implementation of each IPC feature. I made use
+          of a Git GUI client called GitKraken\footnote{https://www.gitkraken.com/}.
+          \\\\
+          JUNIT\footnote{http://junit.org/junit4/} is a Java library that provides a unit testing framework. This
+          was used to ensure that Java methods performed as expected.
+          \\\\
+          Atom was the code editor used throughout the development and testing process.
 
     \section{WindowsIPC Design Approach} \label{devapproach}
+      The first phase prior to implementation was to become familiar with
+      the JNI framework. This involved designing simple JNI programs to become compentent
+      in terms of how primative data types are handled, how parameters are passed, how memory is
+      allocated and freed and how values are passed between the JVM and native C code. This was fundamental
+      during the implementation of WindowsIPC since a thorough understanding of how JNI works was needed
+      to ensure the stability and usability of the system. Concurrent to this, I cemented my C coding ability since
+      a signficant majority of time was spent developing in C. I also ensured I knew how to compile and build Java programs
+      that used JNI. This involved understanding the various flags and include files that needed to be added to the command line.
+      As such, I decided to build the system using the command line and not an IDE using Windows Batch scripts that
+      specified system dependencies and files that were needed to compile and execute the code. I prefered to develop in a
+      simple code editor as I found that initialising an IDE to use JNI was rather tedious and not worth the time. In addition,
+      complex debuggers would not have been beneficial since parallel development is notoriously hard to debug. 
     \section{Results Analysis} \label{results}
 
   \chapter{Implementation of Windows' IPC Mechanisms}
