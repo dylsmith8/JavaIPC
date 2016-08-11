@@ -21,8 +21,6 @@
 \def\code#1{\texttt{#1}}
 \setcounter{secnumdepth}{4}
 
-
-% SAMPLE BATCH SCRIPT DESCIBING JNI COMPILATION
 \lstset{
   frame=tb,
   aboveskip=3mm,
@@ -156,7 +154,7 @@
         \item Design a viable Java library using JNI that will allow Java programmers to write applications that are able to
               communicate without the use of socket programming. This essentially will provide the
               language with concurrency mechanisms. In addition, the library will need to demonstrate that
-              it is a more efficient and effective alternative to Java sockets. As such statistical proof needs to be
+              it is a more efficient and effective alternative to Java Sockets. As such statistical proof needs to be
               demonstrated.
 
         \item Since JNI makes use of native code, this presents a significant portability issue. As such recommendations
@@ -748,8 +746,7 @@
   \chapter{Project Approach}
     % GIVE A GENERAL OVER VIEW OF THE CHAPTER HERE ONCE IT IS COMPLETE
     The following chapter provides a broad, high-level view of the methodologies used during the
-    design and implementation phase of the project. In addition, it discusses the scope of the project
-    and how it correlates to the objectives outlined in Section \ref{researchobjectives}.
+    design and implementation phase of the project.
     \\\\
     Section \ref{hardwareused} discusses the hardware that was used for the project.
     Section \ref{softwareused} discusses the software and other related technologies that were used
@@ -821,7 +818,7 @@
           \\\\
           Atom was the code editor used throughout the development and testing process.
 
-    \section{WindowsIPC Design Approach} \label{devapproach}
+    \section{Design Approach and System Overview} \label{devapproach}
       The first phase prior to implementation was to become familiar with
       the JNI framework. This involved designing simple JNI programs to become competent
       in terms of how primitive data types are handled, how parameters are passed, how memory is
@@ -846,8 +843,9 @@
       \end{lstlisting}
 
       Once I had gained suitable confidence with using JNI to access native C code,
-      I ranked each Windows IPC mechanism in terms of ease of implementation.
-      I started developing Java Sockets since this is the only method of
+      I ranked each Windows IPC mechanism in terms of ease of implementation based on research conducted
+      in terms of their use in other systems. I believe this was a logical method to follow that made the development
+      process significantly easier. I started developing Java Sockets since this is the only method of
       IPC that Java offers (as mentioned in chapter 2). In addition, I wanted to
       use this as a benchmark to determine if the other mechanisms perform better.
       This involved timing message sending between two Java programs that made use of
@@ -861,7 +859,17 @@
       complex and difficult to understand. This was apparent in the many function parameters and flags that are present
       in WINAPI functions. I also found that most of the function examples on the Microsoft Developer Network were given in C++ code,
       which was problematic since WindowsIPC was written in C. As a result, C and C++ syntax is used interchangeably. Ultimately, this did not
-      pose any significant problem, since Visual C++ could handle it's compilation.
+      pose any significant problem, since Visual C++ could handle it's compilation. Figure 3.1 presents a graphical representation
+      of the system. It illustrates the problem that two Java programs cannot communicate within the ``Java World" but can in the ``native C/C++ World".
+      through the use of JNI. The actual communication is done by making use of WINAPI functions which can call the relevant IPC function(s). This
+      allows the system to feed messages back and forth between the Java and C/C++ levels.
+
+      \begin{figure}[H]
+        \includegraphics[scale=0.7]{SystemOverview}
+        \label{fig:SystemOverview}
+        \caption{High-level Overview of WindowsIPC}
+      \end{figure}
+
 
       During the implementation of each feature, I tested it by writing small Java test programs that used the native code to send
       messages to each other. Messages sent were simple byte arrays. The size (in terms of the number of elements)
@@ -872,12 +880,13 @@
       interface. The \code{run} method uses an object of WindowsIPC to call method to send a message to the program's main thread. This was done
       to ensure true communication was possible (i.e. between separate processes as well as threads executing within a single JVM instance).
 
+
       % DISCUSSION OF HOW I WENT ABOUT RESULTS ANALYSIS
     \section{Results Analysis} \label{results}
       In order to time the execution of each native method as well as the Java Sockets execution time, I used the following Java code:
       \begin {lstlisting}[caption=Java Timing Code]
         long time = System.nanoTime();
-        String x = winIPC.openFileMapping(); //Method being timed
+          //Method being timed goes here...
         System.out.println("Time to get message from file mapping: "+ ((System.nanoTime() - time))+ "ns");
         System.out.println("Message in Java: " + x);
       \end{lstlisting}
@@ -887,10 +896,42 @@
       that was achieved. Each timing value was copied into an R script that calculated the mean for the relevant IPC mechanism.
       I also made use of Microsoft Excel to provide a convenient method in which to view results without having to scan through an
       R script file. Once the mean execution time for each mechanism was calculated, the R script generated various graphs, including line and
-      bar graphs. This provided a graphical way in which to display each mechanism's performance relative to Java Sockets.
+      bar graphs. This provided a graphical way in which to display each mechanism's performance relative to Java Sockets. Listing 3.3 shows R
+      code that calculates the mean execution time of Java Sockets in micro-seconds for each byte size and then generates a line graph
+      illustrating the relationship.
+
+      \begin {lstlisting}[caption=Snippet of R Script that Generates Stats and Graphs]
+        JS_VECTOR <- c(
+        JSOCKETS_40_BYTES / 1000,
+        JSOCKETS_400_BYTES / 1000,
+        JSOCKETS_4000_BYTES / 1000,
+        JSOCKETS_40000_BYTES / 1000
+        )
+        png(file = "JavaSocketsLineChart.png")
+        plot(
+          JS_VECTOR,
+          col="red",
+          xlab="Size of Message in Bytes",
+          ylab="Time to Send in MICRO-SECONDS",
+          main="Java Sockets Performance",
+          type='b',
+          xaxt="n",
+          ylim=c(6000, 6400)
+        )
+        axis(side=1, at=1:4, lab=c("40","400","4 000","40 000"))
+        dev.off()
+      \end{lstlisting}
+
+      The graphs generated aided in the discussion chapter of this text due to the visual illustration of the results.
+      It showed the excellent speed up that can be achieved by making use of this library.
 
   % IN DEPTH DISCUSSION OF EACH WINDOWS IPC METHOD
   \chapter{Implementation of Windows' IPC Mechanisms}
+    This chapter presents an in-depth discussion of the implementation of WindowsIPC. It includes a thorough
+    discussion of the design methodology, problems that were encountered as well the relative success or lack
+    thereof of each IPC mechanism.
+
+    % SUMMARISE HERE ALL THE SECTIONS THAT DISCUSS WHAT WHEN FINISHED
 
   \chapter{Results}
 
@@ -898,7 +939,7 @@
 
   \chapter{Conclusion}
 
-
+  \addcontentsline{toc}{chapter}{References}
   \bibliographystyle{ruauthordate}
   \bibliography{refs2}
 
