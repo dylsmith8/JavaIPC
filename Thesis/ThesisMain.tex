@@ -931,9 +931,25 @@
 
   % IN DEPTH DISCUSSION OF EACH WINDOWS IPC METHOD
   \chapter{Implementation of Windows' IPC Mechanisms}
-    This chapter presents an in-depth discussion of the implementation of WindowsIPC. It includes a thorough
-    discussion of the design methodology, problems that were encountered as well as the relative success or lack
-    thereof of each IPC mechanism.
+    \section{Introduction}
+      This chapter presents an in-depth discussion of the implementation of WindowsIPC. It includes a thorough
+      discussion of the design methodology, problems that were encountered as well as the relative success or lack
+      thereof of each IPC mechanism. In addition, discussion centres around the the various WINAPI
+  
+      The primary Java file for this system is called \code{WindowsIPC.java}.
+      This class contains all the native methods and support methods that are needed for the implementation
+      of the system. The class loads the native library using the following code:
+
+      \begin {lstlisting}[caption=Loading The Native Library]
+        static {
+          System.loadLibrary("WindowsIPC");
+        }
+      \end{lstlisting}
+
+
+    \section{System Compilation and File Generation} \label{syscomp}
+
+    % should add some references here used during implementation --> i.e. tutorials used etc
     \section{Java Sockets} \label{jsockssections}
 
     \section{Named Pipes} \label{npsection}
