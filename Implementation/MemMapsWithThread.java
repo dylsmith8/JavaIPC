@@ -10,10 +10,10 @@ public class MemMapsWithThread {
 
     WindowsIPC winIPC = new WindowsIPC();
 
- //   for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         Thread t = new Thread(new MemMapThread());    
         t.start();
-  //  }
+    }
    
     final byte[]data = new byte[40];
     if (winIPC.createFileMapping(data) == 0)

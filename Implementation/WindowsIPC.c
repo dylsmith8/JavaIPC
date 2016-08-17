@@ -606,8 +606,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     // create the semaphore here
     semaphore = CreateSemaphore(
       NULL,
-      100,
-      100,
+      1,
+      1,
       SEMAPHORE_NAME
     );
 
@@ -702,7 +702,6 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 
     switch (waitResult) {
       case WAIT_OBJECT_0:
-              printf("Got in wait_result0");
               mappedFileHandle = OpenFileMapping (
                 FILE_MAP_ALL_ACCESS,
                 FALSE,
@@ -715,7 +714,6 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
               }
 
               // read data here, must be a critical region
-
               buffer = (LPTSTR) MapViewOfFile(
                 mappedFileHandle,
                 FILE_MAP_ALL_ACCESS,
@@ -736,6 +734,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
                 printf("An error occured releasing the semaphore: %d\n", GetLastError());
                 return -1;
               }
+              break;
         default:
           printf("Got to default \n");
     } //switch
