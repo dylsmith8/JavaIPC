@@ -274,6 +274,39 @@ IPC mechamisms. After ten successful timed runs, an average of 84993,3ns
 was yielded. This is considerably faster than the mechanism (**work out some
 % here**).
 
+### Semaphores (for File Mapping)
+The orginal File Mapping implementation did not contain any sychronisation
+mechanisms. Since data is being copied into shared memory, it is fundamental
+that the system has some form of synchronisation to deal with competing
+processes that may attempt to access the data. In the system's initial
+implementation, data is simply copied into shared memory using the 'CopyData'
+function that is part of WINAPI. As such, secondary processes can simply
+enter the region and read the data. No writes are performed.
+
+There are two approaches to providing synchronisation to this critical region.
+The first approach involves implementing the semaphore mechanism as a completely
+separate entity from that of shared memory. That means that the user of WindowsIPC
+can use the Windows semaphore provided for whatever reason they choose fit.
+For example, the programmer can create the shared memory, then manually
+synchronise its access by calling a separate semaphore implementation. As a
+result, it is distinct from the shared memory (file mappping) implemenation.
+The second approach combines the semaphore and file mapping implementation.
+This means that when the shared memory is created, the semaphore controlling
+read/write access to it is created as well. The benefit here is that there is
+only one call to the JNI since the shared memory and semaphore are created in one
+native function call. In addition, it may potentially eliminate
+programmer error. Opposed to this, there are two native function calls:
+one to create the shared memory and another to create the semaphore. By
+combining them into one, the performance benefits are significantly more
+beneficial (cite george's paper here).
+
+Prior to implementing the synchronisation, I sought to understand how
+Windows semaphores worked. Initial investigation concluded that
+they are significantly more complex than that of their Unix System V
+counterparts. Essentially, NAMED semaphores are created using the
+WINAPI function `CreateSemaphore` with several arguments being
+passed into the function. 
+
 # Data Copy
 
 #### Refs
