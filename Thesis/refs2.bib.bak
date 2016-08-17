@@ -29,6 +29,14 @@
   review =        {can use to talk about Java RMI}
 }
 
+@InProceedings{BROSGAL,
+  author =    {Brosgol, B, M},
+  title =     {{A Comparison of the Concurrency and Real-Time Features of Ada 95 and Java}},
+  booktitle = {SIGAda '98 Proceedings},
+  year =      {1998},
+  address =   {Bristol, United Kingdom}
+}
+
 @InCollection{dijkstraSems,
   author =    {Dijkstra, Edsger W.},
   title =     {{The Origin of Concurrent Programming}},
@@ -42,6 +50,14 @@
   isbn =      {0-387-95401-5},
   numpages =  {74},
   url =       {http://dl.acm.org/citation.cfm?id=762971.762974}
+}
+
+@Misc{ENVBUILDS,
+  author =       {MSDN},
+  title =        {{Setting the Path and Environment Variables for Command-Line Builds}},
+  howpublished = {\url{https://msdn.microsoft.com/en-us/library/f2ccy3wt.aspx}},
+  year =         {2016},
+  note =         {[Date Accessed: 16 August 2016]}
 }
 
 @Book{garg2005concurrent,
@@ -379,6 +395,14 @@ year = {1996}
   review =        {Talks about SMOF --> good for talking about getting around portability issues of java}
 }
 
+@Misc{win10BC,
+  author =       {Scanlon, J},
+  title =        {{How to Run Old Programs on Windows 10}},
+  howpublished = {\url{http://www.techradar.com/news/software/operating-systems/how-to-run-old-programs-on-windows-10-1300470}},
+  year =         {2015},
+  note =         {[Date Accessed: 11 August 2016]}
+}
+
 @Book{WinInt2009,
   title =     {{Windows Internals Covering Windows Server 2008 and Windows Vista}},
   publisher = {Microsoft Press},
@@ -402,7 +426,7 @@ year = {1996}
 0 AllEntriesGroup:;
 1 ExplicitGroup:George's papers\;0\;WellsEfficientIPCJava\;WellsIPCJava\;WellsIPCMultiProc\;;
 1 ExplicitGroup:General OS stuff\;0\;OSInternals&DesignPrinciplesStallings\;dijkstraSems\;hayes2007computing\;linuxKernal\;modernOS\;motesnitsalis2013using\;semDisadvantages\;spinlocks1994\;;
-1 ExplicitGroup:Java Concurrency\;0\;Auerbach:2007:DIC:1289927.1289967\;HydeJavaThreadProg\;JavaConcurrencyInPractice\;JavaIntro\;LeaConcurrentProgInJavaDesignPrinciplesPatterns\;Lea_java.util.concurrent\;ScalabilityWithAkka\;SlinnJVMAkka\;breg1998javaRMI\;garg2005concurrent\;pthreadsCarver\;taboada2013javaforHPC\;;
+1 ExplicitGroup:Java Concurrency\;0\;Auerbach:2007:DIC:1289927.1289967\;BROSGAL\;HydeJavaThreadProg\;JavaConcurrencyInPractice\;JavaIntro\;LeaConcurrentProgInJavaDesignPrinciplesPatterns\;Lea_java.util.concurrent\;ScalabilityWithAkka\;SlinnJVMAkka\;breg1998javaRMI\;garg2005concurrent\;pthreadsCarver\;taboada2013javaforHPC\;;
 1 ExplicitGroup:Windows Internals and IPC\;0\;IPCWindowsLinkedInSlides\;MSDN_API\;MSDN_IPCExplanation\;MSDN_Mailslots_INTRO\;MSDN_PIPES_INTRO\;MSDN_ProcsThread_IPC\;MSDN_Synch_INTRO\;WinInt2009\;lewandowski1997interprocess\;multithreadingwin32\;russinovich2012windows\;;
 1 ExplicitGroup:Other OS IPC features\;0\;MAC_API\;;
 }
