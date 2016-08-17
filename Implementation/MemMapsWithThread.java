@@ -1,6 +1,7 @@
 /*
   Author: Dylan Smith
   Date: 7 July 2016
+  Modified: 17 August 2016
 
   Class that tests Windows Memory Mapped Files using a threading mechanism
 */
@@ -9,10 +10,13 @@ public class MemMapsWithThread {
 
     WindowsIPC winIPC = new WindowsIPC();
 
-    Thread t = new Thread(new MemMapThread());
-    t.start();
-
-    if (winIPC.createFileMapping("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
+    for (int i = 0; i < 10; i++) {
+        Thread t = new Thread(new MemMapThread());    
+        t.start();
+    }
+   
+    final byte[]data = new byte[40];
+    if (winIPC.createFileMapping(data) == 0)
       System.out.println("File mapping successfully created");
     else
       System.out.println("File mapping failed");

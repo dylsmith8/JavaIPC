@@ -33,6 +33,7 @@ Implementation of native functions
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
 #define MEMORY_MAPPING_NAME "JavaMemoryMap"
+#define SEMAPHORE_NAME "JavaSemaphore"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 const jbyte *nameMailslot; // global variable reprenting the mailslot name
@@ -596,10 +597,25 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
 
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
+    HANDLE semaphore;
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
     jsize arrLen = (*env)->GetArrayLength(env, message);
     printf("Message size in bytes: %d\n", arrLen);
+
+    // create the semaphore here
+    semaphore = CreateSemaphore(
+      NULL,
+      10,
+      10,
+      SEMAPHORE_NAME
+    );
+
+    // some semaphore error checking
+    if (semaphore == NULL) {
+      printf("Error occured creating semaphore %d\n", GetLastError());
+      return -1;
+    }
 
     //create mapping object
     mappedFileHandle = CreateFileMapping (
@@ -631,32 +647,12 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
       return -1;
     }
 
-    // here you would want to lock --> so create semaphore
-    HANDLE semaphore = CreateWinSemaphore();
-    if (semaphore == NULL) {
-      printf("Semaphore creation failed");
-      return -1;
-    }
-    else {
-    //  switch (waitResult) {
-      //  case WAIT_OBJECT_0:
-          printf("Got here\n");
-          CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
-      //    break;
-    //    case WAIT_TIMEOUT:
-      //    printf("cannot create");
-    //      break;
-  //    } // switch
-      _getch(); // keeps console open for now until you press enter --> will allow the function to return
-    } // else
+    CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
+    _getch();
 
-    if (!ReleaseSemaphore(semaphore, 1, NULL)) {
-      printf("Semaphore release failed: %d\n", GetLastError());
-      return -1;
-    }
-    //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
+  //  CloseHandle(semaphore);
 
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
@@ -680,41 +676,73 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
+    HANDLE semaphore;
+    DWORD waitResult;
 
-    mappedFileHandle = OpenFileMapping (
-      FILE_MAP_ALL_ACCESS,
-      FALSE,
-      MEMORY_MAPPING_NAME
+    // try open the semahore
+    semaphore = OpenSemaphore (
+      SEMAPHORE_ALL_ACCESS,
+      NULL,
+      SEMAPHORE_NAME
     );
 
-    if (mappedFileHandle == NULL) {
-      printf("Could not open file mapping");
-      return errorForJavaProgram;
+    // some error checking
+    if (semaphore == NULL) {
+      printf("Could not open semaphore %d\n", GetLastError());
+      return -1;
     }
 
-    // read data here, must be a critical region
-    HANDLE sem = OpenSemaphore(EVENT_ALL_ACCESS, FALSE, "JavaIPCSem");
-    DWORD waitResult = WaitForSingleObject(sem, INFINITE);
-    printf("Gothere \n");
-    if (waitResult == WAIT_OBJECT_0) {
-      buffer = (LPTSTR) MapViewOfFile(
-        mappedFileHandle,
-        FILE_MAP_ALL_ACCESS,
-        0,
-        0,
-        BUFFER_SIZE
-      );
-    }
-    else {
-      if (buffer == NULL) {
-        printf("Could not map view");
-        CloseHandle(mappedFileHandle);
-        return errorForJavaProgram;
-      }
-    }
+    waitResult = WaitForSingleObject(
+      semaphore,
+      -1 // block
+    );
 
+    // try to open the file mapping -- SHOULD BE DONE ATOMICALLY
+    // ======================================================================
+
+    switch (waitResult) {
+      case WAIT_OBJECT_0:
+              printf("Got in wait_result0");
+              mappedFileHandle = OpenFileMapping (
+                FILE_MAP_ALL_ACCESS,
+                FALSE,
+                MEMORY_MAPPING_NAME
+              );
+
+              if (mappedFileHandle == NULL) {
+                printf("Could not open file mapping");
+                return errorForJavaProgram;
+              }
+
+              // read data here, must be a critical region
+
+              buffer = (LPTSTR) MapViewOfFile(
+                mappedFileHandle,
+                FILE_MAP_ALL_ACCESS,
+                0,
+                0,
+                BUFFER_SIZE
+              );
+
+              if (buffer == NULL) {
+                printf("Could not map view");
+                CloseHandle(mappedFileHandle);
+                return errorForJavaProgram;
+              }
+
+              message = (*env)->NewStringUTF(env, buffer);
+
+              if (!ReleaseSemaphore(semaphore, 1, NULL)) {
+                printf("An error occured releasing the semaphore: %d\n", GetLastError());
+                return -1;
+              }
+        default:
+          printf("Got to default \n");
+    } //switch
+
+    // END CRITICAL REGION
+    //=========================================================================
     // return..
-    message = (*env)->NewStringUTF(env, buffer);
 
     //clean up
     UnmapViewOfFile(buffer);
