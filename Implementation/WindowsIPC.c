@@ -606,8 +606,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     // create the semaphore here
     semaphore = CreateSemaphore(
       NULL,
-      10,
-      10,
+      100,
+      100,
       SEMAPHORE_NAME
     );
 
@@ -740,6 +740,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
           printf("Got to default \n");
     } //switch
 
+    printf("Wait result %d\n", waitResult);
     // END CRITICAL REGION
     //=========================================================================
     // return..
