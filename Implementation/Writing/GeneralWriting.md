@@ -289,7 +289,7 @@ separate entity from that of shared memory. That means that the user of WindowsI
 can use the Windows semaphore provided for whatever reason they choose fit.
 For example, the programmer can create the shared memory, then manually
 synchronise its access by calling a separate semaphore implementation. As a
-result, it is distinct from the shared memory (file mappping) implemenation.
+result, it is distinct from the shared memory (file mappping) implementation.
 The second approach combines the semaphore and file mapping implementation.
 This means that when the shared memory is created, the semaphore controlling
 read/write access to it is created as well. The benefit here is that there is
@@ -305,7 +305,24 @@ Windows semaphores worked. Initial investigation concluded that
 they are significantly more complex than that of their Unix System V
 counterparts. Essentially, NAMED semaphores are created using the
 WINAPI function `CreateSemaphore` with several arguments being
-passed into the function. 
+passed into the function. `CreateSemaphore` returns a handle to
+the newly created semaphore object. In addition, the function
+takes in security attributes which define whether it can be inherited
+by any child processes (it is given `null`) in this case since the creating
+process does not spawn any child processes. In addition, it takes the
+intial count and the maximum count. The initial value of the semaphore should
+be greater than or equal to zero and should always be less that or equal to
+the maximum value of the semaphore. The semaphore is always signalled if
+the count is greater than zero and non-signalled when it is equal to zero.
+The count is increased by the `ReleaseSemaphore` function which is called
+by a thread or process after finishing its work (cite MSDN).
+
+Semaphores were only implemented subsequent to the implementation of File Mapping.
+The first implementation of the semaphore mechanism was included with the
+File Mapping code. `CreateSemaphore` is called just before `CreateFileMapping` is called
+within the native method `createFileMapping`.
+This sets up the semaphore before the data is mapped into shared memory.
+
 
 # Data Copy
 
