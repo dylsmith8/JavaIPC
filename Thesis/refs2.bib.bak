@@ -1,5 +1,13 @@
 % Encoding: UTF-8
 
+@Misc{Android,
+  author =       {AndroidDevelopers},
+  title =        {JNI Tips},
+  howpublished = {\url{https://developer.android.com/training/articles/perf-jni.html}},
+  year =         {2016},
+  note =         {[Date Accessed: 18 August 2016]}
+}
+
 @InProceedings{Auerbach:2007:DIC:1289927.1289967,
   author =    {Auerbach, Joshua and Bacon, David F. and Blainey, Bob and Cheng, Perry and Dawson, Michael and Fulton, Mike and Grove, David and Hart, Darren and Stoodley, Mark},
   title =     {Design and Implementation of a Comprehensive Real-time Java Virtual Machine},
@@ -30,11 +38,12 @@
 }
 
 @InProceedings{BROSGAL,
-  author =    {Brosgol, B, M},
-  title =     {{A Comparison of the Concurrency and Real-Time Features of Ada 95 and Java}},
-  booktitle = {SIGAda '98 Proceedings},
-  year =      {1998},
-  address =   {Bristol, United Kingdom}
+  author =       {Brosgol, B, M},
+  title =        {{A Comparison of the Concurrency and Real-Time Features of Ada 95 and Java}},
+  booktitle =    {SIGAda '98 Proceedings},
+  year =         {1998},
+  address =      {Bristol, United Kingdom},
+  organization = {Association for Computing Machinary}
 }
 
 @InCollection{dijkstraSems,
