@@ -859,6 +859,40 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
 
 /*
  * Class:     WindowsIPC
+ * Method:    createSemaphore
+ * Signature: (Ljava/lang/String;II)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
+  (JNIEnv * env, jobject obj, jstring semName, jint initCount, jint maxCount) {
+
+    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
+    HANDLE semaphore;
+    
+    if (maxCount > initCount || maxCount < 0) return -1;
+    else {
+      semaphore = CreateSemaphore(
+        NULL,
+        initCount,
+        maxCount,
+        sem
+      );
+  
+      if (semaphore == NULL) {
+        printf("Semaphore creation failed: \n%d", GetLastError());
+        (*env)->ReleaseStringUTFChars(env, semName, sem);
+        return -1;
+      }
+      else {
+        (*env)->ReleaseStringUTFChars(env, semName, sem);
+        return (jint) semaphore;
+      } 
+    } 
+    (*env)->ReleaseStringUTFChars(env, semName, sem);
+    return -1;
+  } // createSemaphore 
+
+/*
+ * Class:     WindowsIPC
  * Method:    openSemaphore
  * Signature: (Ljava/lang/String;)I
  */
