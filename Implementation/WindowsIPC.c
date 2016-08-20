@@ -857,5 +857,61 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
     return 0; // success
   }
 
+/*
+ * Class:     WindowsIPC
+ * Method:    openSemaphore
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
+  (JNIEnv * env, jobject obj, jstring semName) {
+    HANDLE semaphore;
+    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
+
+    semaphore = OpenSemaphore(
+      SEMAPHORE_ALL_ACCESS,
+      NULL,
+      sem
+    );
+
+    if (semaphore == NULL) {
+      printf("Could not open the semaphore:\n%d", GetLastError());
+      (*env)->ReleaseStringUTFChars(env, semName, sem);
+      return -1;
+    }
+    (*env)->ReleaseStringUTFChars(env, semName, sem);
+    return (jint) semaphore;
+  } // openSemaphore 
+
+/*
+ * Class:     WindowsIPC
+ * Method:    waitForSingleObject
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
+  (JNIEnv * env, jobject obj, jint semHandle) {
+    DWORD waitResult;
+    
+    waitResult = WaitForSingleObject(
+        semHandle,
+        -1 // block
+     );
+    if (waitResult == WAIT_OBJECT_0) return (jint) WAIT_OBJECT_0;
+    else return -1;
+  } //waitForSingleObejct
+
+/*
+ * Class:     WindowsIPC
+ * Method:    releaseSemaphore
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_releaseSemaphore
+  (JNIEnv * env, jobject obj, jint semHandle, jint incValue) {
+      if (!ReleaseSemaphore(semHandle, incValue, NULL)) {
+        printf("An error occured releasing the semaphore: %d\n", GetLastError());
+        return -1;
+      } else return 0;
+  } // releaseSemaphore
+
+
 void main() {
 } // main

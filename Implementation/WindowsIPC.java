@@ -132,6 +132,26 @@ public class WindowsIPC {
   */
   public native int sendDataCopyMessage (byte[] message);
 
+   /*
+    Create a Windows Semaphore 
+  */
+  public native int createSemaphore(String name, int initCount, int maxCount);
+
+  /*
+    Attempt to open the semaphore called "semName"
+  */
+  public native int openSemaphore(String semName);
+
+  /*
+    Attempt to access the semaphore object 
+  */
+  public native int waitForSingleObject(int handle);
+
+  /*
+    Release the semaphore object
+  */
+  public native int releaseSemaphore(int handle, int incValue);
+
   /*
   Load the native library
   */
