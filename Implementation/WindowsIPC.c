@@ -60,7 +60,7 @@ HANDLE WINAPI CreateWinSemaphore () {
   return winSem;
 } // MySemaphore
 
-LPCTSTR dcMessage;
+jbyte dcMessage;
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
@@ -751,11 +751,11 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
   }
 
 LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-  LPCSTR msgReceived;
+  jbyte msgReceived;
   if (msg == WM_COPYDATA) {
     COPYDATASTRUCT* cds = (COPYDATASTRUCT*)lparam;
     if (cds->dwData) {
-      msgReceived = (LPCSTR)(cds->lpData);
+      msgReceived = (jbyte)(cds->lpData);
       printf("%s\n", msgReceived);
       return TRUE;
     }
@@ -772,7 +772,7 @@ LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
  * Method:    openDataCopy
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createDataCopyWindow
   (JNIEnv * env, jobject obj) {
 
     char error[60] = "Error";
@@ -805,9 +805,12 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
         }
       }
     }
-    jstring toReturn;
-    toReturn = (*env)->NewStringUTF(env, dcMessage);
-    return toReturn; // success
+  //  int x = printf("len %s\n", strlen(dcMessage));
+  //  jbyteArray arr = (*env)->NewByteArray(env, 1);
+  //   message = (*env)->NewByteArray(env, 1);
+  //  (*env)->SetByteArrayRegion(env, message, 0, 1, dcMessage);
+    printf("x\n");
+    return dcMessage; // success
   }
 
 /*
@@ -820,9 +823,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
     jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("Message size in bytes: %d\n", arrLen);
+    printf("Message size idasdsn bytes: %d\n", arrLen);
 
-    LPCTSTR messageString = str;
+    jbyte *messageString = str;
     dcMessage = messageString;
     COPYDATASTRUCT cds;
     HWND hwnd;
@@ -840,8 +843,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
     }
     else {
       cds.dwData = 1;
-      cds.cbData = sizeof(char) * (strlen(messageString) + 1);
-      cds.lpData = (char*)messageString;
+      cds.cbData = arrLen;
+      cds.lpData = messageString;
+
       if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
         printf("Couldnt send message to window. Error code: %d\n", GetLastError());
         return -1;

@@ -114,7 +114,7 @@ public class WindowsIPC {
   /*
     Create a message-only window that a message can be sent to
   */
-  public native String createDataCopyWindow();
+  public native byte[] createDataCopyWindow();
 
   /*
     Use SendMessage to send a data copy message to an exisiting message-only
