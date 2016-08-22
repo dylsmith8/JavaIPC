@@ -16,7 +16,7 @@ public class WindowsIPC {
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa365147(v=vs.85).aspx
     http://stackoverflow.com/questions/13060626/mailslot-write-sending-same-thing-three-times-c-c
   */
-  public native String createMailslot(String name);
+  public native byte[] createMailslot(String name);
 
   /*
     native method connects to an exisiting mailslot
@@ -133,7 +133,7 @@ public class WindowsIPC {
   public native int sendDataCopyMessage (byte[] message);
 
    /*
-    Create a Windows Semaphore 
+    Create a Windows Semaphore
   */
   public native int createSemaphore(String name, int initCount, int maxCount);
 
@@ -143,7 +143,7 @@ public class WindowsIPC {
   public native int openSemaphore(String semName);
 
   /*
-    Attempt to access the semaphore object 
+    Attempt to access the semaphore object
   */
   public native int waitForSingleObject(int handle);
 

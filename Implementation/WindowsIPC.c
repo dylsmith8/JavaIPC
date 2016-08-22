@@ -229,20 +229,18 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
  * Method:    createMailslot
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
   (JNIEnv * env, jobject obj, jstring mailslotName) {
 
-    jint retval = 0;
-    char buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
+    jbyte buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
     DWORD cbBytes; // bytes written
     jboolean result; // result of read
 
-    jstring message; // message received from mailslot client
+    jbyteArray message; // message received from mailslot client
 
     // used to display an error if failure occurs
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     nameMailslot = (*env)->GetStringUTFChars(env, mailslotName, NULL);
@@ -273,12 +271,12 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
     }
     else printf("read was successful\n");
 
-  CloseHandle(mailslotHandle);
+    CloseHandle(mailslotHandle);
 
-  puts(buffer);
-  message = (*env)->NewStringUTF(env, buffer);
+    message = (*env)->NewByteArray(env, (jint)cbBytes);
+    (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
 
-  return message;
+    return message;
 } //createMailslot
 
 /*
@@ -867,7 +865,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
 
     const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
     HANDLE semaphore;
-    
+
     if (maxCount > initCount || maxCount < 0) return -1;
     else {
       semaphore = CreateSemaphore(
@@ -876,7 +874,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
         maxCount,
         sem
       );
-  
+
       if (semaphore == NULL) {
         printf("Semaphore creation failed: \n%d", GetLastError());
         (*env)->ReleaseStringUTFChars(env, semName, sem);
@@ -885,11 +883,11 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
       else {
         (*env)->ReleaseStringUTFChars(env, semName, sem);
         return (jint) semaphore;
-      } 
-    } 
+      }
+    }
     (*env)->ReleaseStringUTFChars(env, semName, sem);
     return -1;
-  } // createSemaphore 
+  } // createSemaphore
 
 /*
  * Class:     WindowsIPC
@@ -914,7 +912,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
     }
     (*env)->ReleaseStringUTFChars(env, semName, sem);
     return (jint) semaphore;
-  } // openSemaphore 
+  } // openSemaphore
 
 /*
  * Class:     WindowsIPC
@@ -924,7 +922,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
 JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
   (JNIEnv * env, jobject obj, jint semHandle) {
     DWORD waitResult;
-    
+
     waitResult = WaitForSingleObject(
         semHandle,
         -1 // block
