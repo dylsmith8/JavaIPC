@@ -422,6 +422,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
         printf("Bytes received: %d\n", resultRec);
         len = resultRec;
         // Echo the buffer back to the sender
+        /*
         iSendResult = send(ClientSocket, recvbuf, resultRec, 0);
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed: %d\n", WSAGetLastError());
@@ -430,6 +431,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
             return errorForJavaProgram;
         }
         printf("Bytes sent: %d\n", iSendResult);
+        */
       }
       else if (resultRec == 0) printf("Connection closing...\n");
       else {
@@ -553,6 +555,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
       return -1;
     }
 
+    /*
     // Receive data until the server closes the connection
     do {
       iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
@@ -573,6 +576,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
         WSACleanup();
         return -1;
     }
+    */
 
     // cleanup
     closesocket(ConnectSocket);
