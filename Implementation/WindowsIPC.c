@@ -33,6 +33,7 @@ Implementation of native functions
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
 #define MEMORY_MAPPING_NAME "JavaMemoryMap"
+#define SEMAPHORE_NAME "JavaSemaphore"
 
 const jbyte *nameOfPipe; // global variable representing the named pipe
 const jbyte *nameMailslot; // global variable reprenting the mailslot name
@@ -40,6 +41,24 @@ HANDLE pipeHandle;  // global handle for the name pipe
 jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
+
+/*
+  Return a handle to Windows Semaphore
+*/
+HANDLE WINAPI CreateWinSemaphore () {
+  HANDLE winSem = CreateSemaphore (
+    NULL, // default security
+    0,  // initial count
+    1, // max sem count
+    "JavaIPCSem"
+  );
+
+  if (winSem == NULL) {
+    printf("Semaphore creation failed: %d", GetLastError());
+    return NULL;
+  }
+  return winSem;
+} // MySemaphore
 
 LPCTSTR dcMessage;
 /*
@@ -578,10 +597,25 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
 
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
+    HANDLE semaphore;
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
     jsize arrLen = (*env)->GetArrayLength(env, message);
     printf("Message size in bytes: %d\n", arrLen);
+
+    // create the semaphore here
+    semaphore = CreateSemaphore(
+      NULL,
+      1,
+      1,
+      SEMAPHORE_NAME
+    );
+
+    // some semaphore error checking
+    if (semaphore == NULL) {
+      printf("Error occured creating semaphore %d\n", GetLastError());
+      return -1;
+    }
 
     //create mapping object
     mappedFileHandle = CreateFileMapping (
@@ -614,11 +648,11 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     }
 
     CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
-     _getch(); // keeps console open for now until you press enter --> will allow the function to return
+    _getch();
 
-    //clean up
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
+  //  CloseHandle(semaphore);
 
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
@@ -642,34 +676,73 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
 
     HANDLE mappedFileHandle;
     LPCTSTR buffer;
+    HANDLE semaphore;
+    DWORD waitResult;
 
-    mappedFileHandle = OpenFileMapping (
-      FILE_MAP_ALL_ACCESS,
-      FALSE,
-      MEMORY_MAPPING_NAME
+    // try open the semahore
+    semaphore = OpenSemaphore (
+      SEMAPHORE_ALL_ACCESS,
+      NULL,
+      SEMAPHORE_NAME
     );
 
-    if (mappedFileHandle == NULL) {
-      printf("Could not open file mapping");
-      return errorForJavaProgram;
+    // some error checking
+    if (semaphore == NULL) {
+      printf("Could not open semaphore %d\n", GetLastError());
+      return -1;
     }
 
-    buffer = (LPTSTR) MapViewOfFile(
-      mappedFileHandle,
-      FILE_MAP_ALL_ACCESS,
-      0,
-      0,
-      BUFFER_SIZE
+    waitResult = WaitForSingleObject(
+      semaphore,
+      -1 // block
     );
 
-    if (buffer == NULL) {
-      printf("Could not map view");
-      CloseHandle(mappedFileHandle);
-      return errorForJavaProgram;
-    }
+    // try to open the file mapping -- SHOULD BE DONE ATOMICALLY
+    // ======================================================================
 
+    switch (waitResult) {
+      case WAIT_OBJECT_0:
+              mappedFileHandle = OpenFileMapping (
+                FILE_MAP_ALL_ACCESS,
+                FALSE,
+                MEMORY_MAPPING_NAME
+              );
+
+              if (mappedFileHandle == NULL) {
+                printf("Could not open file mapping");
+                return errorForJavaProgram;
+              }
+
+              // read data here, must be a critical region
+              buffer = (LPTSTR) MapViewOfFile(
+                mappedFileHandle,
+                FILE_MAP_ALL_ACCESS,
+                0,
+                0,
+                BUFFER_SIZE
+              );
+
+              if (buffer == NULL) {
+                printf("Could not map view");
+                CloseHandle(mappedFileHandle);
+                return errorForJavaProgram;
+              }
+
+              message = (*env)->NewStringUTF(env, buffer);
+
+              if (!ReleaseSemaphore(semaphore, 1, NULL)) {
+                printf("An error occured releasing the semaphore: %d\n", GetLastError());
+                return -1;
+              }
+              break;
+        default:
+          printf("Got to default \n");
+    } //switch
+
+    printf("Wait result %d\n", waitResult);
+    // END CRITICAL REGION
+    //=========================================================================
     // return..
-    message = (*env)->NewStringUTF(env, buffer);
 
     //clean up
     UnmapViewOfFile(buffer);
@@ -783,6 +856,96 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
   }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    createSemaphore
+ * Signature: (Ljava/lang/String;II)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
+  (JNIEnv * env, jobject obj, jstring semName, jint initCount, jint maxCount) {
+
+    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
+    HANDLE semaphore;
+    
+    if (maxCount > initCount || maxCount < 0) return -1;
+    else {
+      semaphore = CreateSemaphore(
+        NULL,
+        initCount,
+        maxCount,
+        sem
+      );
+  
+      if (semaphore == NULL) {
+        printf("Semaphore creation failed: \n%d", GetLastError());
+        (*env)->ReleaseStringUTFChars(env, semName, sem);
+        return -1;
+      }
+      else {
+        (*env)->ReleaseStringUTFChars(env, semName, sem);
+        return (jint) semaphore;
+      } 
+    } 
+    (*env)->ReleaseStringUTFChars(env, semName, sem);
+    return -1;
+  } // createSemaphore 
+
+/*
+ * Class:     WindowsIPC
+ * Method:    openSemaphore
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
+  (JNIEnv * env, jobject obj, jstring semName) {
+    HANDLE semaphore;
+    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
+
+    semaphore = OpenSemaphore(
+      SEMAPHORE_ALL_ACCESS,
+      NULL,
+      sem
+    );
+
+    if (semaphore == NULL) {
+      printf("Could not open the semaphore:\n%d", GetLastError());
+      (*env)->ReleaseStringUTFChars(env, semName, sem);
+      return -1;
+    }
+    (*env)->ReleaseStringUTFChars(env, semName, sem);
+    return (jint) semaphore;
+  } // openSemaphore 
+
+/*
+ * Class:     WindowsIPC
+ * Method:    waitForSingleObject
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
+  (JNIEnv * env, jobject obj, jint semHandle) {
+    DWORD waitResult;
+    
+    waitResult = WaitForSingleObject(
+        semHandle,
+        -1 // block
+     );
+    if (waitResult == WAIT_OBJECT_0) return (jint) WAIT_OBJECT_0;
+    else return -1;
+  } //waitForSingleObejct
+
+/*
+ * Class:     WindowsIPC
+ * Method:    releaseSemaphore
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_releaseSemaphore
+  (JNIEnv * env, jobject obj, jint semHandle, jint incValue) {
+      if (!ReleaseSemaphore(semHandle, incValue, NULL)) {
+        printf("An error occured releasing the semaphore: %d\n", GetLastError());
+        return -1;
+      } else return 0;
+  } // releaseSemaphore
+
 
 void main() {
 } // main
