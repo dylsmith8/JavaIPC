@@ -8,10 +8,11 @@ public class PipeWrite {
 	public static void main (String[] args) {
 
 		WindowsIPC winIPC = new WindowsIPC();
-
-		// create a 'server' -- a client will then connect and write a message
-			 // which is stored in x
-		String x = winIPC.createNamedPipeServer("\\\\.\\Pipe\\JavaPipe");
-		System.out.println("In java" + x);
+        byte [] data = null;
+		
+		data = winIPC.createNamedPipeServer("\\\\.\\Pipe\\JavaPipe");
+		for (int i =0 ; i < data.length; i++) {
+            System.out.println("Message @ elem " + i + ": " + data[i]);
+        }
 	}
 }

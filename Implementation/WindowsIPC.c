@@ -29,7 +29,7 @@ Implementation of native functions
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "user32.lib")
 
-#define BUFFER_SIZE 1024 // 1K buffer size
+#define BUFFER_SIZE 50000 // 50K buffer size (was 1024)
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
 #define MEMORY_MAPPING_NAME "JavaMemoryMap"
@@ -60,24 +60,22 @@ HANDLE WINAPI CreateWinSemaphore () {
   return winSem;
 } // MySemaphore
 
-LPCTSTR dcMessage;
+jbyte dcMessage;
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
 
-    jint retval = 0;
-    char buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
+    jbyte buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
     DWORD cbBytes;
 
-    jstring message; // message received from client that connects
+    jbyteArray message; // message received from client that connects
 
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // Get the name of the pipe
@@ -135,9 +133,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
       }
     }
 
-   puts(buffer);
-   message = (*env)->NewStringUTF(env, buffer);
-   return message;
+     message = (*env)->NewByteArray(env, (jint)cbBytes);
+     (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
+     return message;
   }
 
 /*
@@ -229,20 +227,18 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
  * Method:    createMailslot
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
   (JNIEnv * env, jobject obj, jstring mailslotName) {
 
-    jint retval = 0;
-    char buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
+    jbyte buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
     DWORD cbBytes; // bytes written
     jboolean result; // result of read
 
-    jstring message; // message received from mailslot client
+    jbyteArray message; // message received from mailslot client
 
     // used to display an error if failure occurs
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     nameMailslot = (*env)->GetStringUTFChars(env, mailslotName, NULL);
@@ -273,12 +269,12 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createMailslot
     }
     else printf("read was successful\n");
 
-  CloseHandle(mailslotHandle);
+    CloseHandle(mailslotHandle);
 
-  puts(buffer);
-  message = (*env)->NewStringUTF(env, buffer);
+    message = (*env)->NewByteArray(env, (jint)cbBytes);
+    (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
 
-  return message;
+    return message;
 } //createMailslot
 
 /*
@@ -335,21 +331,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
  * Method:    openWinsock
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
   (JNIEnv * env, jobject obj) {
 
     printf("Initilising Winsock Server...");
 
     WSADATA wsaData; // this will contain information about the socket. Is a struct
-    char recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
+    jbyte recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
     int resultRec, iSendResult;     // number of bytes received and sent
     int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
-    jstring message;                // message to return to Java program (this is received from the client)
+    jbyteArray message;                // message to return to Java program (this is received from the client)
+    int len = 0;                    // length of array to return to client
 
     // used to display an error if failure occurs
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // intialise use of WS2_32.dll
@@ -424,8 +420,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
 
       if (resultRec > 0) {
         printf("Bytes received: %d\n", resultRec);
-
+        len = resultRec;
         // Echo the buffer back to the sender
+        /*
         iSendResult = send(ClientSocket, recvbuf, resultRec, 0);
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed: %d\n", WSAGetLastError());
@@ -434,6 +431,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
             return errorForJavaProgram;
         }
         printf("Bytes sent: %d\n", iSendResult);
+        */
       }
       else if (resultRec == 0) printf("Connection closing...\n");
       else {
@@ -457,9 +455,10 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
     closesocket(ClientSocket);
     WSACleanup();
 
+    printf("Value of len %d\n", len);
     // return..
-    puts(recvbuf);
-    message = (*env)->NewStringUTF(env, recvbuf); // success
+    message = (*env)->NewByteArray(env, len); // success
+    (*env)->SetByteArrayRegion(env, message, 0, len, recvbuf);
     return message;
   } // openWinsock
 
@@ -556,6 +555,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
       return -1;
     }
 
+    /*
     // Receive data until the server closes the connection
     do {
       iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
@@ -576,6 +576,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
         WSACleanup();
         return -1;
     }
+    */
 
     // cleanup
     closesocket(ConnectSocket);
@@ -596,7 +597,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
     HANDLE mappedFileHandle;
-    LPCTSTR buffer;
+    jbyte *buffer;
     HANDLE semaphore;
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
@@ -633,7 +634,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     }
 
     // map view of a file into address space of a calling process
-    buffer = (LPCTSTR) MapViewOfFile (
+    buffer = MapViewOfFile (
       mappedFileHandle,
       FILE_MAP_ALL_ACCESS,
       0,
@@ -642,17 +643,16 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     );
 
     if (buffer == NULL) {
-      printf("Could not map view");
+      printf("Could not map view %d", GetLastError());
       CloseHandle(mappedFileHandle);
       return -1;
     }
 
-    CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
+    CopyMemory(buffer, str, (arrLen * sizeof(jbyte)));
     _getch();
 
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
-  //  CloseHandle(semaphore);
 
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
@@ -663,21 +663,19 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
  * Method:    openFileMapping
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
   (JNIEnv * env, jobject obj) {
 
-    jstring message;
+    jbyteArray message;
+    HANDLE mappedFileHandle;
+    jbyte *buffer;
+    HANDLE semaphore;
+    DWORD waitResult;
 
     // for errors
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    //puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
-
-    HANDLE mappedFileHandle;
-    LPCTSTR buffer;
-    HANDLE semaphore;
-    DWORD waitResult;
 
     // try open the semahore
     semaphore = OpenSemaphore (
@@ -697,7 +695,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
       -1 // block
     );
 
-    // try to open the file mapping -- SHOULD BE DONE ATOMICALLY
+    // try to open the file mapping -- START CRITICAL REGION
     // ======================================================================
 
     switch (waitResult) {
@@ -714,7 +712,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
               }
 
               // read data here, must be a critical region
-              buffer = (LPTSTR) MapViewOfFile(
+              buffer = MapViewOfFile(
                 mappedFileHandle,
                 FILE_MAP_ALL_ACCESS,
                 0,
@@ -723,12 +721,13 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
               );
 
               if (buffer == NULL) {
-                printf("Could not map view");
+                printf("Could not map view %d", GetLastError());
                 CloseHandle(mappedFileHandle);
                 return errorForJavaProgram;
               }
 
-              message = (*env)->NewStringUTF(env, buffer);
+              message = (*env)->NewByteArray(env, strlen(buffer));
+              (*env)->SetByteArrayRegion(env, message, 0, strlen(buffer), buffer);
 
               if (!ReleaseSemaphore(semaphore, 1, NULL)) {
                 printf("An error occured releasing the semaphore: %d\n", GetLastError());
@@ -752,11 +751,11 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
   }
 
 LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-  LPCSTR msgReceived;
+  jbyte msgReceived;
   if (msg == WM_COPYDATA) {
     COPYDATASTRUCT* cds = (COPYDATASTRUCT*)lparam;
     if (cds->dwData) {
-      msgReceived = (LPCSTR)(cds->lpData);
+      msgReceived = (jbyte)(cds->lpData);
       printf("%s\n", msgReceived);
       return TRUE;
     }
@@ -773,7 +772,7 @@ LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
  * Method:    openDataCopy
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createDataCopyWindow
   (JNIEnv * env, jobject obj) {
 
     char error[60] = "Error";
@@ -806,9 +805,12 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
         }
       }
     }
-    jstring toReturn;
-    toReturn = (*env)->NewStringUTF(env, dcMessage);
-    return toReturn; // success
+  //  int x = printf("len %s\n", strlen(dcMessage));
+  //  jbyteArray arr = (*env)->NewByteArray(env, 1);
+  //   message = (*env)->NewByteArray(env, 1);
+  //  (*env)->SetByteArrayRegion(env, message, 0, 1, dcMessage);
+    printf("x\n");
+    return dcMessage; // success
   }
 
 /*
@@ -821,9 +823,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
     jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("Message size in bytes: %d\n", arrLen);
+    printf("Message size idasdsn bytes: %d\n", arrLen);
 
-    LPCTSTR messageString = str;
+    jbyte *messageString = str;
     dcMessage = messageString;
     COPYDATASTRUCT cds;
     HWND hwnd;
@@ -841,8 +843,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
     }
     else {
       cds.dwData = 1;
-      cds.cbData = sizeof(char) * (strlen(messageString) + 1);
-      cds.lpData = (char*)messageString;
+      cds.cbData = arrLen;
+      cds.lpData = messageString;
+
       if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
         printf("Couldnt send message to window. Error code: %d\n", GetLastError());
         return -1;
@@ -867,7 +870,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
 
     const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
     HANDLE semaphore;
-    
+
     if (maxCount > initCount || maxCount < 0) return -1;
     else {
       semaphore = CreateSemaphore(
@@ -876,7 +879,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
         maxCount,
         sem
       );
-  
+
       if (semaphore == NULL) {
         printf("Semaphore creation failed: \n%d", GetLastError());
         (*env)->ReleaseStringUTFChars(env, semName, sem);
@@ -885,11 +888,11 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
       else {
         (*env)->ReleaseStringUTFChars(env, semName, sem);
         return (jint) semaphore;
-      } 
-    } 
+      }
+    }
     (*env)->ReleaseStringUTFChars(env, semName, sem);
     return -1;
-  } // createSemaphore 
+  } // createSemaphore
 
 /*
  * Class:     WindowsIPC
@@ -914,7 +917,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
     }
     (*env)->ReleaseStringUTFChars(env, semName, sem);
     return (jint) semaphore;
-  } // openSemaphore 
+  } // openSemaphore
 
 /*
  * Class:     WindowsIPC
@@ -924,7 +927,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
 JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
   (JNIEnv * env, jobject obj, jint semHandle) {
     DWORD waitResult;
-    
+
     waitResult = WaitForSingleObject(
         semHandle,
         -1 // block

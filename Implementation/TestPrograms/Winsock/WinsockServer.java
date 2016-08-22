@@ -9,8 +9,11 @@
 public class WinsockServer {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
-
-    String x = winIPC.openWinsock();
-    System.out.println("Message in Java: " + x);
+    byte[] data = null;
+    data = winIPC.openWinsock();
+    System.out.println(data[0]);
+    for (int i = 0; i < data.length; i++) {
+        System.out.println("Message @ elem " + i + ": " + data[i]);    
+    }
   }
 }
