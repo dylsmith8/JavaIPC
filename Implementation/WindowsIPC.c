@@ -29,7 +29,7 @@ Implementation of native functions
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "user32.lib")
 
-#define BUFFER_SIZE 1024 // 1K buffer size
+#define BUFFER_SIZE 50000 // 50K buffer size (was 1024)
 #define SOCKET_DEFAULT_PORT "27015"
 #define LOCALHOST "127.0.0.1"
 #define MEMORY_MAPPING_NAME "JavaMemoryMap"
@@ -597,7 +597,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
     HANDLE mappedFileHandle;
-    LPCTSTR buffer;
+    jbyte *buffer;
     HANDLE semaphore;
 
     const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
@@ -634,7 +634,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     }
 
     // map view of a file into address space of a calling process
-    buffer = (LPCTSTR) MapViewOfFile (
+    buffer = MapViewOfFile (
       mappedFileHandle,
       FILE_MAP_ALL_ACCESS,
       0,
@@ -643,17 +643,16 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     );
 
     if (buffer == NULL) {
-      printf("Could not map view");
+      printf("Could not map view %d", GetLastError());
       CloseHandle(mappedFileHandle);
       return -1;
     }
 
-    CopyMemory(buffer, str, (_tcslen(str) * sizeof(TCHAR))); // problem!!
+    CopyMemory(buffer, str, (arrLen * sizeof(jbyte)));
     _getch();
 
     UnmapViewOfFile(buffer);
     CloseHandle(mappedFileHandle);
-  //  CloseHandle(semaphore);
 
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
@@ -664,21 +663,19 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
  * Method:    openFileMapping
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
   (JNIEnv * env, jobject obj) {
 
-    jstring message;
+    jbyteArray message;
+    HANDLE mappedFileHandle;
+    jbyte *buffer;
+    HANDLE semaphore;
+    DWORD waitResult;
 
     // for errors
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    //puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
-
-    HANDLE mappedFileHandle;
-    LPCTSTR buffer;
-    HANDLE semaphore;
-    DWORD waitResult;
 
     // try open the semahore
     semaphore = OpenSemaphore (
@@ -698,7 +695,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
       -1 // block
     );
 
-    // try to open the file mapping -- SHOULD BE DONE ATOMICALLY
+    // try to open the file mapping -- START CRITICAL REGION
     // ======================================================================
 
     switch (waitResult) {
@@ -715,7 +712,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
               }
 
               // read data here, must be a critical region
-              buffer = (LPTSTR) MapViewOfFile(
+              buffer = MapViewOfFile(
                 mappedFileHandle,
                 FILE_MAP_ALL_ACCESS,
                 0,
@@ -724,12 +721,13 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openFileMapping
               );
 
               if (buffer == NULL) {
-                printf("Could not map view");
+                printf("Could not map view %d", GetLastError());
                 CloseHandle(mappedFileHandle);
                 return errorForJavaProgram;
               }
 
-              message = (*env)->NewStringUTF(env, buffer);
+              message = (*env)->NewByteArray(env, strlen(buffer));
+              (*env)->SetByteArrayRegion(env, message, 0, strlen(buffer), buffer);
 
               if (!ReleaseSemaphore(semaphore, 1, NULL)) {
                 printf("An error occured releasing the semaphore: %d\n", GetLastError());

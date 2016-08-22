@@ -9,10 +9,13 @@
 public class MemMapProc2 {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
-
+    byte [] data = null;
     long time = System.nanoTime();
-    String x = winIPC.openFileMapping();
+    data = winIPC.openFileMapping();
     System.out.println("Time to get message from file mapping: "+ ((System.nanoTime() - time))+ "ns");
-    System.out.println("Message in Java: " + x);
+    for (int i = 0; i < data.length; i++) {
+        System.out.println("Message @ elem " + i + ": " + data[i]);
+    }
+    
   }
 }
