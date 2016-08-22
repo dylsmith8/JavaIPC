@@ -331,21 +331,21 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
  * Method:    openWinsock
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
   (JNIEnv * env, jobject obj) {
 
     printf("Initilising Winsock Server...");
 
     WSADATA wsaData; // this will contain information about the socket. Is a struct
-    char recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
+    jbyte recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
     int resultRec, iSendResult;     // number of bytes received and sent
     int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
-    jstring message;                // message to return to Java program (this is received from the client)
+    jbyteArray message;                // message to return to Java program (this is received from the client)
+    int len = 0;                    // length of array to return to client
 
     // used to display an error if failure occurs
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // intialise use of WS2_32.dll
@@ -420,7 +420,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
 
       if (resultRec > 0) {
         printf("Bytes received: %d\n", resultRec);
-
+        len = resultRec;
         // Echo the buffer back to the sender
         iSendResult = send(ClientSocket, recvbuf, resultRec, 0);
         if (iSendResult == SOCKET_ERROR) {
@@ -453,9 +453,10 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_openWinsock
     closesocket(ClientSocket);
     WSACleanup();
 
+    printf("Value of len %d\n", len);
     // return..
-    puts(recvbuf);
-    message = (*env)->NewStringUTF(env, recvbuf); // success
+    message = (*env)->NewByteArray(env, len); // success
+    (*env)->SetByteArrayRegion(env, message, 0, len, recvbuf);
     return message;
   } // openWinsock
 

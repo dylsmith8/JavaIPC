@@ -51,7 +51,7 @@ public class WindowsIPC {
   /*
     Initialise Winsock
   */
-  public native String openWinsock();
+  public native byte[] openWinsock();
 
   /*
     Create a Winsock client
