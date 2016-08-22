@@ -8,8 +8,10 @@
 public class MailslotServer {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
-
-    String message = winIPC.createMailslot("\\\\.\\mailslot\\javaMailslot");
-    System.out.println("Message received in Java:" + message);
+    byte [] data = null;
+    data = winIPC.createMailslot("\\\\.\\mailslot\\javaMailslot");
+    for (int i = 0; i < data.length; i++) {
+        System.out.println("Message @ elem + " + i + ": " + data[i]);    
+    }
   } // main
 } // class mailslot server

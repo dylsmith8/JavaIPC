@@ -16,7 +16,7 @@ public class WindowsIPC {
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa365147(v=vs.85).aspx
     http://stackoverflow.com/questions/13060626/mailslot-write-sending-same-thing-three-times-c-c
   */
-  public native String createMailslot(String name);
+  public native byte[] createMailslot(String name);
 
   /*
     native method connects to an exisiting mailslot
@@ -38,7 +38,7 @@ public class WindowsIPC {
     Create a server process for a named pipe
     Will wait for a client process to connect and send a message
   */
-  public native String createNamedPipeServer(String pipeName);
+  public native byte[] createNamedPipeServer(String pipeName);
 
 
   /*
@@ -51,7 +51,7 @@ public class WindowsIPC {
   /*
     Initialise Winsock
   */
-  public native String openWinsock();
+  public native byte[] openWinsock();
 
   /*
     Create a Winsock client
@@ -61,28 +61,23 @@ public class WindowsIPC {
   /*
     Create a Java Sockets Server (no JNI) on local host at specific port
   */
-  public String createJavaSocketServer(int port) {
+  public byte[] createJavaSocketServer(int port) {
+    byte[] messageRcv = null;
     try {
         ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Waiting for client to connect on port " + serverSocket.getLocalPort() + "...");
-
         Socket server = serverSocket.accept();
-
         DataInputStream in = new DataInputStream(server.getInputStream());
+
         int length = in.readInt();
-        byte[] messageRcv = new byte[length];
+        messageRcv = new byte[length];
 
-        if (length > 0)
-          in.readFully(messageRcv, 0, messageRcv.length);
-
-      //  DataOutputStream out = new DataOutputStream(server.getOutputStream());
-      //  out.writeUTF("Echo: " + messageFromClient);
+        if (length > 0) in.readFully(messageRcv, 0, messageRcv.length);
 
         server.close();
     } catch(IOException e) {
         e.printStackTrace();
       }
-    return ""; // return the message sent from the client
+    return messageRcv; // return the message sent from the client
   }
 
   /*
@@ -90,7 +85,6 @@ public class WindowsIPC {
   */
   public int createJavaSocketClient(String host, int port, byte[] message) {
     try {
-      System.out.println("Connecting to " + host + " on port " + port);
       Socket client = new Socket(host, port);
 
       OutputStream outToServer = client.getOutputStream();
@@ -98,10 +92,6 @@ public class WindowsIPC {
       out.writeInt(message.length);
       out.write(message);
 
-    //  InputStream inFromServer = client.getInputStream();
-    //  DataInputStream in = new DataInputStream(inFromServer);
-
-    //  System.out.println(in.readUTF()); // print server echo
       client.close();
 
     } catch (IOException e) {
@@ -119,12 +109,12 @@ public class WindowsIPC {
   /*
     Open an existing file mapping
   */
-  public native String openFileMapping();
+  public native byte[] openFileMapping();
 
   /*
     Create a message-only window that a message can be sent to
   */
-  public native String createDataCopyWindow();
+  public native byte[] createDataCopyWindow();
 
   /*
     Use SendMessage to send a data copy message to an exisiting message-only
@@ -133,7 +123,7 @@ public class WindowsIPC {
   public native int sendDataCopyMessage (byte[] message);
 
    /*
-    Create a Windows Semaphore 
+    Create a Windows Semaphore
   */
   public native int createSemaphore(String name, int initCount, int maxCount);
 
@@ -143,7 +133,7 @@ public class WindowsIPC {
   public native int openSemaphore(String semName);
 
   /*
-    Attempt to access the semaphore object 
+    Attempt to access the semaphore object
   */
   public native int waitForSingleObject(int handle);
 
