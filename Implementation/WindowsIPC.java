@@ -38,7 +38,7 @@ public class WindowsIPC {
     Create a server process for a named pipe
     Will wait for a client process to connect and send a message
   */
-  public native String createNamedPipeServer(String pipeName);
+  public native byte[] createNamedPipeServer(String pipeName);
 
 
   /*

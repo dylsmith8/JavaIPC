@@ -66,18 +66,16 @@ LPCTSTR dcMessage;
  * Method:    createNamedPipeServer
  * Signature: ()I
  */
-JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
 
-    jint retval = 0;
-    char buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
+    jbyte buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
     DWORD cbBytes;
 
-    jstring message; // message received from client that connects
+    jbyteArray message; // message received from client that connects
 
     char error[60] = "Error";
     jstring errorForJavaProgram;
-    puts(error);
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // Get the name of the pipe
@@ -135,9 +133,9 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createNamedPipeServer
       }
     }
 
-   puts(buffer);
-   message = (*env)->NewStringUTF(env, buffer);
-   return message;
+     message = (*env)->NewByteArray(env, (jint)cbBytes);
+     (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
+     return message;
   }
 
 /*
