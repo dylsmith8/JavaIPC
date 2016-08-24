@@ -1,66 +1,48 @@
 /*
-Author: Dylan Smith
-Date Created: 19 May 2016
-Last Modified: 30 June 2016
+  Author: Dylan Smith
+  Date Created: 19 May 2016
+  Last Modified: 24 August 2016
 
-Implementation of native functions
+  Implementation of native functions
 */
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN   // Header Guard
+#define WIN32_LEAN_AND_MEAN     // speed up build process
 #endif
 
 #ifdef _MSC_VER
  #pragma comment(lib, "user32.lib")
 #endif
 
-#include <jni.h>
-#include <stdio.h>
-#include <errno.h>
+#include <jni.h>  // Using JNI function
+#include <stdio.h>  // C standard IO
+#include <errno.h>  // Error report functions
 
-#include "windows.h" // windows API
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include <conio.h>
+#include "windows.h" // The Windows API
+#include <winsock2.h> // Using Windows Sockets
+#include <ws2tcpip.h> // Winsock 2 functions
+#include <iphlpapi.h> // IP APIs for Winsock
+#include <conio.h>  // Console IO
 
-#include "WindowsIPC.h" // native methods
+#include "WindowsIPC.h" // For native methods defined in WindowsIPC.java
 
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "Ws2_32.lib") // Winsock Libray File
+#pragma comment(lib, "user32.lib") // Include User Objects (for Data Copy)
 
 #define BUFFER_SIZE 50000 // 50K buffer size (was 1024)
-#define SOCKET_DEFAULT_PORT "27015"
+#define SOCKET_DEFAULT_PORT "27015" // Port number
 #define LOCALHOST "127.0.0.1"
-#define MEMORY_MAPPING_NAME "JavaMemoryMap"
-#define SEMAPHORE_NAME "JavaSemaphore"
+#define MEMORY_MAPPING_NAME "JavaMemoryMap" // Global shm name
+#define SEMAPHORE_NAME "JavaSemaphore" // Global sem name
 
-const jbyte *nameOfPipe; // global variable representing the named pipe
-const jbyte *nameMailslot; // global variable reprenting the mailslot name
-HANDLE pipeHandle;  // global handle for the name pipe
+const jbyte *nameOfPipe; // Global variable representing the named pipe
+const jbyte *nameMailslot; // Global variable reprenting the mailslot name
+HANDLE pipeHandle;  // Global handle for the name pipe
 jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
-
-/*
-  Return a handle to Windows Semaphore
-*/
-HANDLE WINAPI CreateWinSemaphore () {
-  HANDLE winSem = CreateSemaphore (
-    NULL, // default security
-    0,  // initial count
-    1, // max sem count
-    "JavaIPCSem"
-  );
-
-  if (winSem == NULL) {
-    printf("Semaphore creation failed: %d", GetLastError());
-    return NULL;
-  }
-  return winSem;
-} // MySemaphore
-
 jbyte dcMessage;
+
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
@@ -69,8 +51,8 @@ jbyte dcMessage;
 JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
 
-    jbyte buffer[BUFFER_SIZE]; // data buffer of 1K. This will store the data that the server receives from the client
-    DWORD cbBytes;
+    jbyte buffer[BUFFER_SIZE]; // Data buffer of 50 k. This will store the data that the server receives from the client
+    DWORD cbBytes; // Dytes read
 
     jbyteArray message; // message received from client that connects
 
@@ -82,85 +64,85 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
     nameOfPipe = (*env)->GetStringUTFChars(env, pipeName, NULL);
 
     pipeHandle = CreateNamedPipe (
-      nameOfPipe,                      // name of the pipe
-      PIPE_ACCESS_DUPLEX,
-      PIPE_TYPE_MESSAGE |
-      PIPE_READMODE_MESSAGE |
-      PIPE_WAIT,                    // forces a return, so thread doesn't block
-      PIPE_UNLIMITED_INSTANCES,
+      nameOfPipe,                   // Name of the pipe
+      PIPE_ACCESS_DUPLEX,           // Full Duplex Pipe
+      PIPE_TYPE_MESSAGE |           // Message Stream
+      PIPE_READMODE_MESSAGE |       // Read as Message Stream
+      PIPE_WAIT,                    // Forces a return, so thread doesn't block
+      PIPE_UNLIMITED_INSTANCES,     // 255 instances
+      BUFFER_SIZE,                  // Size of read/write
       BUFFER_SIZE,
-      BUFFER_SIZE,
-      NMPWAIT_USE_DEFAULT_WAIT,
-      NULL
+      NMPWAIT_USE_DEFAULT_WAIT,     // Timeout
+      NULL                          // Default Security
     );
 
-    // error creating server
+
     if (pipeHandle == INVALID_HANDLE_VALUE)  {
+      // error creating server
+      printf("An Error occured creating the Named Pipe\nError Code: %d\n", GetLastError());
       return errorForJavaProgram;
     }
     else {
       printf("Server created successfully: name:%s\n", nameOfPipe);
 
-        // waits for a client -- currently in ASYC mode so returns immediately
+      // waits for a client -- currently in ASYC mode so returns immediately
       jboolean clientConnected = ConnectNamedPipe(pipeHandle, NULL);
-
 
       // HANDLES THE READING OF A MESSAGE!
       // error with client connecting
       if (!clientConnected) {
+        printf("An error occured with the client connection\nError Code: %d\n", GetLastError());
+        CloseHandle(pipeHandle);
         return errorForJavaProgram;
       }
       else {
-        printf("Client process connected successfully\n");
-
         jboolean resultOfPipeRead = ReadFile(
               pipeHandle, // specify pipe to read from
               buffer, // buffer to read from
               sizeof(buffer), // specify the buffer's size
-              &cbBytes, // deref the bytes
-              NULL
+              &cbBytes, // deref the bytes read
+              NULL  // security
             );
 
         if (!resultOfPipeRead) {
+          printf("An error reading from the pipe\nError Code: %d\n", GetLastError());
+          CloseHandle(pipeHandle);
           return errorForJavaProgram;
         }
         else {
-          printf("Message read successfully:\n");
           CloseHandle(pipeHandle);
-        // free the memory allocated to the string
          (*env)->ReleaseStringUTFChars(env, pipeName, nameOfPipe);
         }
       }
     }
 
-     message = (*env)->NewByteArray(env, (jint)cbBytes);
-     (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
+     message = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
+     (*env)->SetByteArrayRegion(env, message, 0, (jint) cbBytes, buffer); // allocate the elements
      return message;
   }
 
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeClient
- * Signature: (Ljava/lang/String;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    jint retval = 0;
-    char buffer [BUFFER_SIZE]; // 1K
+    char buffer [BUFFER_SIZE]; // 50 K
     DWORD cbBytes;
 
-    // read the message
-    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-    jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("named pipe message size in bytes: %d", arrLen);
+    // Read the message
+    jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
 
-    // check the string
-    if (str == NULL) return -1; // out of memory
+    if (str == NULL) {
+      printf("Out of memory\n");
+      return -1; // out of memory
+    }
 
     // assign the pipe handle
     pipeHandle = CreateFile(
-        "\\\\.\\Pipe\\JavaPipe",
+        "\\\\.\\Pipe\\JavaPipe", // pipe name
         GENERIC_READ | //allows read and write access
         GENERIC_WRITE,
         0,
@@ -172,9 +154,9 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
 
     // check if connected to the server process
     if (pipeHandle == INVALID_HANDLE_VALUE) {
-      retval = -1;
+      printf("Failed to get handle to named pipe server\nError code: %d", GetLastError());
+      return -1;
     }
-    else printf ("CreateFile successful\n");
 
     // send a message
     jboolean sendMessageResult = WriteFile (
@@ -185,16 +167,17 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
       NULL
     );
 
-
     // check if message write was successful
     if (!sendMessageResult || cbBytes != strlen(str) + 1) {
-      retval = -1;
+      printf("Failed to get send message to named pipe server\nError code: %d", GetLastError());
+      CloseHandle(pipeHandle);
+      return -1;
     }
 
     // free memory allocated to the message
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     CloseHandle(pipeHandle);
-    return retval;
+    return 0;
   }
 
 /*
