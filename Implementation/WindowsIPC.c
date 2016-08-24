@@ -131,6 +131,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
 
     char buffer [BUFFER_SIZE]; // 50 K
     DWORD cbBytes;
+    jsize arrLen;
 
     // Read the message
     jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
@@ -139,6 +140,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
       printf("Out of memory\n");
       return -1; // out of memory
     }
+    else arrLen = (*env)->GetArrayLength(env, message);
 
     // assign the pipe handle
     pipeHandle = CreateFile(
@@ -162,13 +164,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     jboolean sendMessageResult = WriteFile (
      pipeHandle,
       str, // hardcoded message to send to the client
-      strlen(str) + 1, // length of a message
+      arrLen, // length of a message
       &cbBytes,
       NULL
     );
 
     // check if message write was successful
-    if (!sendMessageResult || cbBytes != strlen(str) + 1) {
+    if (!sendMessageResult || cbBytes != arrLen) {
       printf("Failed to get send message to named pipe server\nError code: %d", GetLastError());
       CloseHandle(pipeHandle);
       return -1;
@@ -183,11 +185,11 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
 /*
  * Class:     WindowsIPC
  * Method:    createPipe
- * Signature: (Ljava/lang/String;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
   (JNIEnv * env, jobject obj, jstring pipeName) {
-
+    /*
     DWORD cbBytes;
     HANDLE hAnonPipeRead;
     HANDLE hAnonPipeWrite;
@@ -201,7 +203,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
     );
 
     if (!pipe) return -1;
-
+ */
     return -1;
   } // createpipe
 
@@ -214,7 +216,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
   (JNIEnv * env, jobject obj, jstring mailslotName) {
 
     jbyte buffer[BUFFER_SIZE]; // buffer that will store the message dumped in the slot
-    DWORD cbBytes; // bytes written
+    DWORD cbBytes; // bytes written to the mailslot
     jboolean result; // result of read
 
     jbyteArray message; // message received from mailslot client
@@ -234,29 +236,29 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
     );
 
     // check if mailslot was created sucessfully
-    if (mailslotHandle == INVALID_HANDLE_VALUE) return errorForJavaProgram;
-    else printf("Mailslot created successfully\n");
+    if (mailslotHandle == INVALID_HANDLE_VALUE) {
+      printf("Failed to create Mailslot\nError Code: %d", GetLastError());
+      return errorForJavaProgram;
+    }
 
     // block till a connection is received
     result = ReadFile (
-      mailslotHandle,
-      buffer,
-      sizeof(buffer),
-      &cbBytes,
-      NULL
+      mailslotHandle,   // mailslot handle
+      buffer,           // buffer to put data into
+      sizeof(buffer),   // size of the buffer
+      &cbBytes,         // bytes in slot
+      NULL              // security
     );
 
     if (!result || 0 == cbBytes) {
+      printf("Failed to read data in Mailslot\nError Code: %d", GetLastError());
       CloseHandle(mailslotHandle);
       return errorForJavaProgram;
     }
-    else printf("read was successful\n");
 
     CloseHandle(mailslotHandle);
-
-    message = (*env)->NewByteArray(env, (jint)cbBytes);
+    message = (*env)->NewByteArray(env, (jint) cbBytes);
     (*env)->SetByteArrayRegion(env, message, 0, (jint)cbBytes, buffer);
-
     return message;
 } //createMailslot
 
@@ -268,13 +270,17 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
 JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    jint retval = 0;
     DWORD cbBytes;
+    jsize arrLen;
     jboolean result;  // stores the result of the WriteFile
 
-    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-    jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("mailslot message size in bytes: %d", arrLen);
+    jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+
+    if (str == NULL) {
+      printf("Out of memory\n");
+      return -1; // out of memory
+    }
+    else arrLen = (*env)->GetArrayLength(env, message);
 
     // connect to existing mailslot
     mailslotHandle = CreateFile (
@@ -288,25 +294,30 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
     );
 
     // check if connection successful
-    if (mailslotHandle == INVALID_HANDLE_VALUE) return -1;
-    else printf("Connected to mailslot successfully");
+    if (mailslotHandle == INVALID_HANDLE_VALUE) {
+      printf("Failed to get Mailslot server handle\nError Code: %d\n", GetLastError());
+      return -1;
+    }
 
     // dump a message in the mailslot
     result = WriteFile (
-      mailslotHandle,
-      str,
-      strlen(str) + 1,
+      mailslotHandle,   // slot handle
+      str,              // to dump
+      arrLen,  // size of
       &cbBytes,
       NULL
     );
 
     // check dump was successful
-    if (!result || cbBytes != strlen(str) + 1) return -1;
-    else printf("Dump successful\n");
+    if (!result || cbBytes != arrLen) {
+      printf("Failed to dump message into the Mailslot\nErrorCode: %d\n", GetLastError());
+      CloseHandle(mailslotHandle);
+      return -1;
+    }
 
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     CloseHandle(mailslotHandle);
-    return retval;
+    return 0;
   } // connect to mailslot
 
 /*
