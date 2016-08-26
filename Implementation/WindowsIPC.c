@@ -843,16 +843,24 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
 JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
   (JNIEnv * env, jobject obj, jstring semName, jint initCount, jint maxCount) {
 
-    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
-    HANDLE semaphore;
+    HANDLE semaphore; // handle to return up to the Java world
 
-    if (maxCount > initCount || maxCount < 0) return -1;
+    const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
+    if (sem == NULL) {
+      printf("Out of memory\n");
+      return -1;
+    }
+
+    if (maxCount < initCount || maxCount < 0) {
+      printf("The maximum count cannot be less than the initial count and cannot be negative\n");
+      return -1;
+    }
     else {
-      semaphore = CreateSemaphore(
-        NULL,
-        initCount,
-        maxCount,
-        sem
+      semaphore = CreateSemaphore (
+        NULL, // default semaphore security
+        initCount, // sem initial count
+        maxCount, // sem maximum count
+        sem // semahpore name
       );
 
       if (semaphore == NULL) {
@@ -866,7 +874,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
       }
     }
     (*env)->ReleaseStringUTFChars(env, semName, sem);
-    return -1;
+    return -1; // an error occured
   } // createSemaphore
 
 /*
@@ -876,12 +884,13 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createSemaphore
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_openSemaphore
   (JNIEnv * env, jobject obj, jstring semName) {
-    HANDLE semaphore;
+
+    HANDLE semaphore; // handle of opened semaphore to return to Java world
     const jbyte *sem = (*env)->GetStringUTFChars(env, semName, NULL);
 
     semaphore = OpenSemaphore(
-      SEMAPHORE_ALL_ACCESS,
-      NULL,
+      SEMAPHORE_ALL_ACCESS, // allow all access
+      FALSE,
       sem
     );
 
@@ -923,7 +932,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_releaseSemaphore
         return -1;
       } else return 0;
   } // releaseSemaphore
-
 
 void main() {
 } // main
