@@ -328,12 +328,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
 JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
   (JNIEnv * env, jobject obj) {
 
-    printf("Initilising Winsock Server...");
-
     WSADATA wsaData; // this will contain information about the socket. Is a struct
-    jbyte recvbuf[BUFFER_SIZE];      // buffer to store the message from the client
-    int resultRec, iSendResult;     // number of bytes received and sent
-    int recvbuflen = BUFFER_SIZE;   // specify size of the buffer
+    jbyte buffer[BUFFER_SIZE];      // buffer to store the message from the client
+    int bytesReceived, bytesSent;     // number of bytes received and sent
+    int bufferLen = BUFFER_SIZE;   // specify size of the buffer
     jbyteArray message;                // message to return to Java program (this is received from the client)
     int len = 0;                    // length of array to return to client
 
@@ -342,14 +340,13 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     jstring errorForJavaProgram;
     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
-    // intialise use of WS2_32.dll
-    int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
+    int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData); // intialise use of WS2_32.dll
     if (resultOfInitialisation != 0) {
-      printf("WSAStartup failed");
+      printf("WSAStartup failed\nError Code: %d", WSAGetLastError());
       return errorForJavaProgram;
     }
 
-    struct addrinfo *result = NULL, *ptr = NULL, hints;
+    struct addrinfo *result = NULL, *ptr = NULL, hints; //holds host address info
     ZeroMemory(&hints, sizeof (hints));
     hints.ai_family = AF_INET;                // is IPv4
     hints.ai_socktype = SOCK_STREAM;          // is a stream socket
@@ -359,7 +356,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     // Resolve the local address and port to be used by the server
     resultOfInitialisation = getaddrinfo(NULL, SOCKET_DEFAULT_PORT, &hints, &result);
     if (resultOfInitialisation != 0) {
-        printf("getaddrinfo failed: %d\n", resultOfInitialisation);
+        printf("getaddrinfo failed: %d\nError Code: %d", resultOfInitialisation, WSAGetLastError());
         WSACleanup();
         return errorForJavaProgram;
     }
@@ -371,7 +368,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     // check for some errors
     if (ListenSocket == INVALID_SOCKET) {
       printf("Error at socket(): %ld\n", WSAGetLastError());
-      freeaddrinfo(result);
+      freeaddrinfo(result); // free address information
       WSACleanup();
       return errorForJavaProgram;
     }
@@ -380,7 +377,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     resultOfInitialisation = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
     // check for bind errors
     if (resultOfInitialisation == SOCKET_ERROR) {
-        printf("bind failed with error: %d\n", WSAGetLastError());
+        printf("Bind failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
         closesocket(ListenSocket);
         WSACleanup();
@@ -392,7 +389,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
 
     // bound so now listen for a client connection
     if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
-      printf("Listen failed with error: %ld\n", WSAGetLastError() );
+      printf("Socket listen failed with error: %d\n", WSAGetLastError());
       closesocket(ListenSocket);
       WSACleanup();
       return errorForJavaProgram;
@@ -402,7 +399,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     SOCKET ClientSocket = INVALID_SOCKET; // temp for accepting client connections
     ClientSocket = accept(ListenSocket, NULL, NULL);
     if (ClientSocket == INVALID_SOCKET) {
-      printf("accept failed: %d\n", WSAGetLastError());
+      printf("Accept failed with error: %d\n", WSAGetLastError());
       closesocket(ListenSocket);
       WSACleanup();
       return errorForJavaProgram;
@@ -410,35 +407,24 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
 
     // receive something until the client disconnects
     do {
-      resultRec = recv(ClientSocket, recvbuf, recvbuflen, 0);
+      bytesReceived = recv(ClientSocket, buffer, bufferLen, 0);
 
-      if (resultRec > 0) {
-        printf("Bytes received: %d\n", resultRec);
-        len = resultRec;
-        // Echo the buffer back to the sender
-        /*
-        iSendResult = send(ClientSocket, recvbuf, resultRec, 0);
-        if (iSendResult == SOCKET_ERROR) {
-            printf("send failed: %d\n", WSAGetLastError());
-            closesocket(ClientSocket);
-            WSACleanup();
-            return errorForJavaProgram;
-        }
-        printf("Bytes sent: %d\n", iSendResult);
-        */
+      if (bytesReceived > 0) {
+        printf("Bytes received: %d\n", bytesReceived);
+        len = bytesReceived;
       }
-      else if (resultRec == 0) printf("Connection closing...\n");
+      else if (bytesReceived == 0) printf("Connection closing...\n");
       else {
         printf("recv failed: %d\n", WSAGetLastError());
         closesocket(ClientSocket);
         WSACleanup();
         return errorForJavaProgram;
       }
-    } while (resultRec > 0);
+    } while (bytesReceived > 0);
 
     // receiving done so shut down socket
-    resultRec = shutdown(ClientSocket, SD_SEND);
-    if (resultRec == SOCKET_ERROR) {
+    bytesReceived = shutdown(ClientSocket, SD_SEND);
+    if (bytesReceived == SOCKET_ERROR) {
         printf("shutdown failed: %d\n", WSAGetLastError());
         closesocket(ClientSocket);
         WSACleanup();
@@ -449,11 +435,10 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
     closesocket(ClientSocket);
     WSACleanup();
 
-    printf("Value of len %d\n", len);
     // return..
-    message = (*env)->NewByteArray(env, len); // success
-    (*env)->SetByteArrayRegion(env, message, 0, len, recvbuf);
-    return message;
+    message = (*env)->NewByteArray(env, len); // create array to return
+    (*env)->SetByteArrayRegion(env, message, 0, len, buffer); // fill array with message
+    return message; // return the message
   } // openWinsock
 
 /*
@@ -464,37 +449,39 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-    jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("Message size in bytes: %d\n", arrLen);
-
+    jsize arrLen;
     WSADATA wsaData; // this will contain information about the socket. Is a struct
+    struct addrinfo *result = NULL, *ptr = NULL, hints;
+    SOCKET ConnectSocket = INVALID_SOCKET;    // temp socket for connection
+    int bufferLen = BUFFER_SIZE;             // specify the receive buffer size
+    char buffer[BUFFER_SIZE];                // receive buffer
+    int iResult;
+
+    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL); // fetch  message elems
+    if (str == NULL) {
+      printf("Out of memory\n");
+      return -1; // out of memory
+    }
+    else arrLen = (*env)->GetArrayLength(env, message);
 
     // intialise use of WS2_32.dll
     int resultOfInitialisation = WSAStartup (MAKEWORD(2, 2), &wsaData);
     if (resultOfInitialisation != 0) {
-      printf("WSAStartup failed");
+      printf("WSAStartup failed with error: %d\n", WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       return -1;
     }
 
-    struct addrinfo *result = NULL,
-                    *ptr = NULL,
-                    hints;
-
-    SOCKET ConnectSocket = INVALID_SOCKET;    // temp socket for connection
-    int recvbuflen = BUFFER_SIZE;             // specify the receive buffer size
-    char recvbuf[BUFFER_SIZE];                // receive buffer
-    int iResult;                              // bytes received from server response
-
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
-    hints.ai_socktype = SOCK_STREAM; // stream protocol for TCP
+    hints.ai_family = AF_UNSPEC;     // IPv4
+    hints.ai_socktype = SOCK_STREAM; // Socket Stream
     hints.ai_protocol = IPPROTO_TCP; // TCP
 
     // now need to resolve IP and port
     resultOfInitialisation = getaddrinfo(LOCALHOST, SOCKET_DEFAULT_PORT, &hints, &result);
     if (resultOfInitialisation != 0) {
-      printf("getaddrinfo failed: %d\n", resultOfInitialisation);
+      printf("getaddrinfo failed: %d\nError Code: %d\n", resultOfInitialisation, WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       WSACleanup();
       return -1;
     }
@@ -506,7 +493,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 
     // check socket is valid
     if (ConnectSocket == INVALID_SOCKET) {
-      printf("Error at socket(): %ld\n", WSAGetLastError());
+      printf("Error at socket(): \nError Code: %d\n", WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       freeaddrinfo(result);
       WSACleanup();
       return -1;
@@ -524,7 +512,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 
     // perform some error checking
     if (ConnectSocket == INVALID_SOCKET) {
-      printf("Unable to connect to server!\n");
+      printf("Unable to connect to server!\nError Code: %d\n", WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       WSACleanup();
       return -1;
     }
@@ -532,7 +521,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     // Send an initial buffer
     iResult = send(ConnectSocket, str, arrLen, 0);
     if (iResult == SOCKET_ERROR) {
-      printf("send failed: %d\n", WSAGetLastError());
+      printf("Send failed: \nError Code:%d\n", WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       closesocket(ConnectSocket);
       WSACleanup();
       return -1;
@@ -544,40 +534,18 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
     iResult = shutdown(ConnectSocket, SD_SEND);
     if (iResult == SOCKET_ERROR) {
       printf("shutdown failed: %d\n", WSAGetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       closesocket(ConnectSocket);
       WSACleanup();
       return -1;
     }
-
-    /*
-    // Receive data until the server closes the connection
-    do {
-      iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-      if (iResult > 0)
-        printf("Bytes received: %d\n", iResult);
-      else if (iResult == 0)
-        printf("Connection closed\n");
-      else
-        printf("recv failed: %d\n", WSAGetLastError());
-    } while (iResult > 0);
-
-
-    // shutdown the send half of the connection since no more data will be sent
-    iResult = shutdown(ConnectSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR) {
-        printf("shutdown failed: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return -1;
-    }
-    */
 
     // cleanup
     closesocket(ConnectSocket);
     WSACleanup(); // terminate use of ws2_32.dll
 
     // free memory allocated to the message
-    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
 
     return 0;
   } // createWinsockClient
