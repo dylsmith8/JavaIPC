@@ -265,7 +265,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createMailslot
 /*
  * Class:     WindowsIPC
  * Method:    connectToMailslot
- * Signature: (Ljava/lang/String;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_connectToMailslot
   (JNIEnv * env, jobject obj, jbyteArray message) {
@@ -444,7 +444,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openWinsock
 /*
  * Class:     WindowsIPC
  * Method:    createWinsockClient
- * Signature: ()I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
   (JNIEnv * env, jobject obj, jbyteArray message) {
@@ -553,69 +553,82 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createWinsockClient
 /*
  * Class:     WindowsIPC
  * Method:    createFileMapping
- * Signature: (Ljava/lang/String;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
+    jsize arrLen;
     HANDLE mappedFileHandle;
     jbyte *buffer;
     HANDLE semaphore;
 
-    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-    jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("Message size in bytes: %d\n", arrLen);
+    jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+    if (str == NULL) {
+      printf("Out of memory\n");
+      return -1; // out of memory
+    }
+    else arrLen = (*env)->GetArrayLength(env, message);
 
     // create the semaphore here
     semaphore = CreateSemaphore(
-      NULL,
-      1,
-      1,
-      SEMAPHORE_NAME
+      NULL, // default security
+      1, // initial semaphore count
+      1, // maximum semaphore count
+      SEMAPHORE_NAME // semaphore name (is global)
     );
 
     // some semaphore error checking
     if (semaphore == NULL) {
       printf("Error occured creating semaphore %d\n", GetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       return -1;
     }
 
     //create mapping object
     mappedFileHandle = CreateFileMapping (
-      INVALID_HANDLE_VALUE,
-      NULL,
-      PAGE_READWRITE,
-      0,
-      BUFFER_SIZE,
-      MEMORY_MAPPING_NAME
+      INVALID_HANDLE_VALUE, // handle to map file. Will create later
+      NULL, // default security
+      PAGE_READWRITE, // allow read/write access
+      0, // high order size of file mapping object
+      BUFFER_SIZE, // low order size of file mapping object
+      MEMORY_MAPPING_NAME // name of file mapping
     );
 
     if (mappedFileHandle == NULL) {
       printf("Error creating a mapped file: %d", GetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       return -1;
     }
 
-    // map view of a file into address space of a calling process
+    // map view of a file common address space
     buffer = MapViewOfFile (
-      mappedFileHandle,
-      FILE_MAP_ALL_ACCESS,
+      mappedFileHandle, // handle of newly created file mapped object
+      FILE_MAP_ALL_ACCESS,  // allows access from any process
       0,
       0,
-      BUFFER_SIZE
+      BUFFER_SIZE // bytes to map (TEST WITH ARRLEN)
     );
 
     if (buffer == NULL) {
       printf("Could not map view %d", GetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
       CloseHandle(mappedFileHandle);
       return -1;
     }
 
-    CopyMemory(buffer, str, (arrLen * sizeof(jbyte)));
-    _getch();
+    // Buffer is mapped in memory, so copy str to buffer:
+    CopyMemory(buffer, str, (arrLen * sizeof(jbyte))); // copy data into shm
+    _getch(); // keep process alive
 
-    UnmapViewOfFile(buffer);
+    if (UnmapViewOfFile(buffer) == 0) {
+      printf("Failed to unmap view of the file copied into shm\nError Code: %d", GetLastError());
+      (*env)->ReleaseByteArrayElements(env, message, (jbyte*) str, JNI_ABORT);
+      CloseHandle(mappedFileHandle);
+      return -1;
+    }
+
     CloseHandle(mappedFileHandle);
-
     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
     return 0; // success
   }
@@ -642,14 +655,14 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
     // try open the semahore
     semaphore = OpenSemaphore (
       SEMAPHORE_ALL_ACCESS,
-      NULL,
+      FALSE,
       SEMAPHORE_NAME
     );
 
     // some error checking
     if (semaphore == NULL) {
       printf("Could not open semaphore %d\n", GetLastError());
-      return -1;
+      return errorForJavaProgram;
     }
 
     waitResult = WaitForSingleObject(
