@@ -1,7 +1,7 @@
 /*
   Author: Dylan Smith
   Date Created: 19 May 2016
-  Last Modified: 24 August 2016
+  Last Modified: 29 August 2016
 
   Implementation of native functions
 */
@@ -187,26 +187,87 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
  * Method:    createPipe
  * Signature: ([B)I
  */
-JNIEXPORT jint JNICALL Java_WindowsIPC_createPipe
-  (JNIEnv * env, jobject obj, jstring pipeName) {
-    /*
+JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
+  (JNIEnv * env, jobject obj, jbyteArray message) {
     DWORD cbBytes;
-    HANDLE hAnonPipeRead;
-    HANDLE hAnonPipeWrite;
+    HANDLE hAnonPipeRead = NULL;
+    HANDLE hAnonPipeWrite = NULL;
     jboolean pipe;
+    jbyte arrLen;
+
+      // Read the message
+    jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+
+    if (str == NULL) {
+     printf("Out of memory\n");
+     return -1; // out of memory
+    }
+    else arrLen = (*env)->GetArrayLength(env, message);
 
     pipe = CreatePipe (
-      hAnonPipeRead,
-      hAnonPipeWrite,
+      &hAnonPipeRead,
+      &hAnonPipeWrite,
       NULL,
-      1024
+      arrLen
     );
 
-    if (!pipe) return -1;
- */
-    return -1;
+    if (!pipe) {
+      printf("Failed to create the Anon Pipe\nError Code: %d", GetLastError());
+      return -1;
+    }
+    else {
+      printf("read handle: %d\n", (jint)hAnonPipeRead);
+      printf("write handle: %d\n", (jint)hAnonPipeWrite);
+      // send a message
+      jboolean sendMessageResult = WriteFile (
+        hAnonPipeWrite,
+        str, // hardcoded message to send to the client
+        arrLen, // length of a message
+        &cbBytes,
+        NULL
+      );
+
+      // check if message write was successful
+      if (!sendMessageResult || cbBytes != arrLen) {
+        printf("Failed to get send message through the anon pipe\nError code: %d", GetLastError());
+        CloseHandle(pipeHandle);
+        return -1;
+      }
+    }
+    printf("got here\n");
+    return (jint) hAnonPipeRead; // return the read handle
   } // createpipe
 
+/*
+* Class:     WindowsIPC
+* Method:    getAnonPipeMessage
+* Signature: (I)[B
+*/
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_getAnonPipeMessage
+  (JNIEnv * env, jobject obj, jint pipeHandle) {
+
+    jbyte buffer[BUFFER_SIZE]; // Data buffer of 50 k. This will store the data that the server receives from the client
+    DWORD cbBytes; // Dytes read
+
+    jbyteArray message;
+    jboolean resultOfPipeRead = ReadFile(
+      (HANDLE)pipeHandle, // specify pipe to read from
+      buffer, // buffer to read from
+      sizeof(buffer), // specify the buffer's size
+      &cbBytes, // deref the bytes read
+      NULL  // security
+     );
+
+    if (!resultOfPipeRead) {
+      printf("An error reading from the pipe\nError Code: %d\n", GetLastError());
+      CloseHandle((HANDLE) pipeHandle);
+    }
+
+    CloseHandle((HANDLE) pipeHandle);
+    message = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
+    (*env)->SetByteArrayRegion(env, message, 0, (jint) cbBytes, buffer); // allocate the elements
+    return message;
+  } // getAnonPipeMessage
 /*
  * Class:     WindowsIPC
  * Method:    createMailslot
