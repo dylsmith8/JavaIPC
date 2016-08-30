@@ -706,7 +706,7 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
 
               if (!ReleaseSemaphore(semaphore, 1, NULL)) {
                 printf("An error occured releasing the semaphore: %d\n", GetLastError());
-                return -1;
+                return errorForJavaProgram;
               }
               break;
         default:
@@ -726,12 +726,11 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_openFileMapping
   }
 
 LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-  jbyte msgReceived;
+  LPCSTR msgReceived;
   if (msg == WM_COPYDATA) {
     COPYDATASTRUCT* cds = (COPYDATASTRUCT*)lparam;
     if (cds->dwData) {
-      msgReceived = (jbyte)(cds->lpData);
-      printf("%s\n", msgReceived);
+      msgReceived = (LPCSTR)(cds->lpData);
       return TRUE;
     }
   }
@@ -747,45 +746,41 @@ LRESULT WINAPI WindowsProcedure (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
  * Method:    openDataCopy
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createDataCopyWindow
+JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
   (JNIEnv * env, jobject obj) {
+     char error[60] = "Error";
+     jstring errorForJavaProgram;
+     errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
-    char error[60] = "Error";
-    jstring errorForJavaProgram;
-    errorForJavaProgram = (*env)->NewStringUTF(env,error);
+     WNDCLASS windowClass;
+     HWND hwnd;
+     MSG msg;
 
-    WNDCLASS windowClass;
-    HWND hwnd;
-    MSG msg;
+     memset(&windowClass, 0, sizeof(windowClass));
+     windowClass.lpfnWndProc = &WindowsProcedure;
+     windowClass.lpszClassName = TEXT("WindowsIPCDataCopyClass");
+     windowClass.hInstance = GetModuleHandle(NULL);
 
-    memset(&windowClass, 0, sizeof(windowClass));
-    windowClass.lpfnWndProc = &WindowsProcedure;
-    windowClass.lpszClassName = TEXT("WindowsIPCDataCopyClass");
-    windowClass.hInstance = GetModuleHandle(NULL);
-
-    if (!RegisterClass(&windowClass)) {
-      printf("failed to register class: %d\n", GetLastError());
-      return errorForJavaProgram;
-    }
-    else {
-      hwnd = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
-      if (hwnd == NULL) {
-        printf("Window Creation failed: %d\n", GetLastError());
-        return errorForJavaProgram;
-      }
-      else {
-        while (GetMessage (&msg, NULL, 0, 0)) {
-         TranslateMessage (&msg);
-         DispatchMessage (&msg);
-        }
-      }
-    }
-  //  int x = printf("len %s\n", strlen(dcMessage));
-  //  jbyteArray arr = (*env)->NewByteArray(env, 1);
-  //   message = (*env)->NewByteArray(env, 1);
-  //  (*env)->SetByteArrayRegion(env, message, 0, 1, dcMessage);
-    printf("x\n");
-    return dcMessage; // success
+     if (!RegisterClass(&windowClass)) {
+       printf("failed to register class: %d\n", GetLastError());
+       return errorForJavaProgram;
+     }
+     else {
+       hwnd = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+       if (hwnd == NULL) {
+         printf("Window Creation failed: %d\n", GetLastError());
+         return errorForJavaProgram;
+       }
+       else {
+         while (GetMessage (&msg, NULL, 0, 0)) {
+          TranslateMessage (&msg);
+          DispatchMessage (&msg);
+         }
+       }
+     }
+     jstring toReturn;
+     toReturn = (*env)->NewStringUTF(env, dcMessage);
+     return toReturn; // success
   }
 
 /*
@@ -796,43 +791,42 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createDataCopyWindow
 JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
-    const jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-    jsize arrLen = (*env)->GetArrayLength(env, message);
-    printf("Message size idasdsn bytes: %d\n", arrLen);
+     jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
+     jsize arrLen = (*env)->GetArrayLength(env, message);
+     printf("Message size in bytes: %d\n", arrLen);
 
-    jbyte *messageString = str;
-    dcMessage = messageString;
-    COPYDATASTRUCT cds;
-    HWND hwnd;
+     //LPCTSTR messageString = str;
+    // dcMessage = messageString;
+     COPYDATASTRUCT cds;
+     HWND hwnd;
 
-    hwnd = FindWindowEx (
-       HWND_MESSAGE,
-       0,
-       TEXT("WindowsIPCDataCopyClass"),
-       0
-    );
+     hwnd = FindWindowEx (
+        HWND_MESSAGE,
+        0,
+        TEXT("WindowsIPCDataCopyClass"),
+        0
+     );
 
-    if (hwnd == NULL) {
-      printf("Couldnt find window: %d\n", GetLastError());
-      return -1;
-    }
-    else {
-      cds.dwData = 1;
-      cds.cbData = arrLen;
-      cds.lpData = messageString;
-
-      if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
-        printf("Couldnt send message to window. Error code: %d\n", GetLastError());
-        return -1;
-      }
-      // message sent correctly so now destroy the window
-      if (!SendMessage(hwnd, WM_DESTROY, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
-        printf("Couldnt send destroy message to window. Error code: %d\n", GetLastError());
-        return -1;
-      }
-    }
-    (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
-    return 0; // success
+     if (hwnd == NULL) {
+       printf("Couldnt find window: %d\n", GetLastError());
+       return -1;
+     }
+     else {
+       cds.dwData = 1;
+       cds.cbData = arrLen;
+       cds.lpData = str;
+       if (!SendMessage(hwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+         printf("Couldnt send message to window. Error code: %d\n", GetLastError());
+         return -1;
+       }
+       // message sent correctly so now destroy the window
+       if (!SendMessage(hwnd, WM_DESTROY, (WPARAM)hwnd, (LPARAM)(LPVOID)&cds)) {
+         printf("Couldnt send destroy message to window. Error code: %d\n", GetLastError());
+         return -1;
+       }
+     }
+     (*env)->ReleaseByteArrayElements(env, message, str, JNI_ABORT);
+     return 0; // success
   }
 
 /*
@@ -913,7 +907,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
     DWORD waitResult;
 
     waitResult = WaitForSingleObject(
-        semHandle,
+        (HANDLE)semHandle,
         -1 // block
      );
     if (waitResult == WAIT_OBJECT_0) return (jint) WAIT_OBJECT_0;
@@ -927,7 +921,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_waitForSingleObject
  */
 JNIEXPORT jint JNICALL Java_WindowsIPC_releaseSemaphore
   (JNIEnv * env, jobject obj, jint semHandle, jint incValue) {
-      if (!ReleaseSemaphore(semHandle, incValue, NULL)) {
+      if (!ReleaseSemaphore((HANDLE)semHandle, incValue, NULL)) {
         printf("An error occured releasing the semaphore: %d\n", GetLastError());
         return -1;
       } else return 0;
