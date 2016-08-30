@@ -7,15 +7,11 @@
 public class PipeRead {
 	public static void main (String[] args) {
 		WindowsIPC winIPC = new WindowsIPC();
-		byte [] data = new byte[40];
+		byte [] data = new byte[40000];
         for (int i = 0; i < data.length; i++) data[i] = 0x02;
 		// create a client that sends a message along an existing named pipe
 		long time = System.nanoTime();
-		if (winIPC.createNamedPipeClient(data) == 0)
-			System.out.println("client created successfully");
-		else
-			System.out.println("Error creating client - no pipe to connect to");
-
+		int x = winIPC.createNamedPipeClient(data);
 		System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
 	}
 }
