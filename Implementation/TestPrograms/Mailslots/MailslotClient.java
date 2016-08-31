@@ -8,14 +8,11 @@
 public class MailslotClient {
   public static void main (String[] args) {
     WindowsIPC winIPC = new WindowsIPC();
-    byte [] data = new byte[40];
+    byte [] data = new byte[40000];
     for (int i = 0; i < data.length; i++) data[i] = 0x02;
     long time = System.nanoTime();
-    if (winIPC.connectToMailslot(data) == 0) {
-      System.out.println("Java: Mailslot message dumped successfully");
-      System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
-    }
-    else
-      System.out.println("Java: Mailslot message dump failed");
+    int x = winIPC.connectToMailslot(data); 
+    long y =  ((System.nanoTime() - time));
+    System.out.println("Time to send message: "+ y + "ns");
   } // main
 } // class mailslot server

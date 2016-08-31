@@ -14,9 +14,7 @@
 		Thread t = new Thread(new MailslotThread(MAILSLOT_NAME));
 	    t.start();
 
-	    // create the mailslot
-    	String x = winIPC.createMailslot(MAILSLOT_NAME);
-		System.out.println("This is the message in Java: " + x);
+	    
  	}
 
  	private static class MailslotThread implements Runnable {
