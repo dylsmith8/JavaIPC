@@ -4,15 +4,14 @@
 
 	Test program that tests named pipes
 */
-public class PipeWrite {
+public class PipeRead {
 	public static void main (String[] args) {
-
 		WindowsIPC winIPC = new WindowsIPC();
-        byte [] data = null;
-		
-		data = winIPC.createNamedPipeServer("\\\\.\\Pipe\\JavaPipe");
-		for (int i =0 ; i < data.length; i++) {
-            System.out.println("Message @ elem " + i + ": " + data[i]);
-        }
+		byte [] data = new byte[40000];
+        for (int i = 0; i < data.length; i++) data[i] = 0x02;
+		// create a client that sends a message along an existing named pipe
+		long time = System.nanoTime();
+		int x = winIPC.createNamedPipeClient(data);
+		System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
 	}
 }
