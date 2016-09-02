@@ -10,7 +10,8 @@ public class NamedPipeJavaWrite {
             FileOutputStream out = new FileOutputStream(PIPE_NAME);       
             long time = System.nanoTime();
             out.write(data);
-            System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
+            long y = ((System.nanoTime() - time));
+            System.out.println("Time to send message: "+ y + "ns");
             System.out.println("Wrote to named pipe ok");
          }
         catch (IOException exc) {

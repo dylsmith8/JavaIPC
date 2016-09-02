@@ -4,7 +4,7 @@
 
 	Test program that tests named pipes
 */
-public class PipeWrite {
+public class PipeRead {
 	public static void main (String[] args) {
 
 		WindowsIPC winIPC = new WindowsIPC();
