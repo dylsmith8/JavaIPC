@@ -1,3 +1,7 @@
+/*
+	Author: Dylan Smith
+	Date: 2 September 2016
+*/
 public class TestAnonPipes {
 	public static void main (String[] args) {
 		WindowsIPC winIPC = new WindowsIPC();
@@ -5,23 +9,32 @@ public class TestAnonPipes {
 		byte [] data = new byte[40];
 		for (int i = 0; i < data.length; i++) data[i] = 0x02;
 
+		long time = System.nanoTime();
 		int x = winIPC.createAnonPipe(data);
-		System.out.println("read handle received in Java: " + x);
-		Thread t = new Thread(new MyThread(x));
-		t.start();	 
+		long timeTaken = System.nanoTime() - time;
+		System.out.println("Time taken to create the pipe: " + timeTaken);
+		if (x != - 1) {
+			Thread t = new Thread(new AnonPipeThread(x));
+			t.start();
+		}
+		else System.out.println("An error occurred");
 	}
 
-	private static class MyThread implements Runnable {
+	private static class AnonPipeThread implements Runnable {
 		private int handle;
 		private byte [] data = null;
 		WindowsIPC winIPC = new WindowsIPC();
-		public MyThread(int handle) {
+		public AnonPipeThread(int handle) {
 			this.handle = handle;
 		}
 
 		public void run() {
+			long time = System.nanoTime();
 			data = winIPC.getAnonPipeMessage(handle);
+			long timeTaken = System.nanoTime() - time;
 			for (int i = 0; i < data.length; i++) System.out.println("Data at " + i + ": " + data[i]);
+			System.out.println("Anonymous Pipe successfully read");
+			System.out.println("Time taken to fetch message: " + timeTaken + " ns");
 		}
 	}
 }

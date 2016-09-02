@@ -193,7 +193,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
     HANDLE hAnonPipeRead = NULL;
     HANDLE hAnonPipeWrite = NULL;
     jboolean pipe;
-    jbyte arrLen;
+    jsize arrLen;
 
       // Read the message
     jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
@@ -203,7 +203,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
      return -1; // out of memory
     }
     else arrLen = (*env)->GetArrayLength(env, message);
-
+    
     pipe = CreatePipe (
       &hAnonPipeRead,
       &hAnonPipeWrite,
@@ -212,12 +212,10 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
     );
 
     if (!pipe) {
-      printf("Failed to create the Anon Pipe\nError Code: %d", GetLastError());
+      printf("Failed to create the Anon Pipe\nError Code: %d\n", GetLastError());
       return -1;
     }
     else {
-      printf("read handle: %d\n", (jint)hAnonPipeRead);
-      printf("write handle: %d\n", (jint)hAnonPipeWrite);
       // send a message
       jboolean sendMessageResult = WriteFile (
         hAnonPipeWrite,
@@ -234,7 +232,6 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
         return -1;
       }
     }
-    printf("got here\n");
     return (jint) hAnonPipeRead; // return the read handle
   } // createpipe
 
@@ -247,24 +244,27 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_getAnonPipeMessage
   (JNIEnv * env, jobject obj, jint pipeHandle) {
 
     jbyte buffer[BUFFER_SIZE]; // Data buffer of 50 k. This will store the data that the server receives from the client
-    DWORD cbBytes; // Dytes read
+    DWORD cbBytes; // Bytes read
 
-    jbyteArray message;
+    char error[60] = "Error";
+    jstring errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
     jboolean resultOfPipeRead = ReadFile(
-      (HANDLE)pipeHandle, // specify pipe to read from
+      (HANDLE) pipeHandle, // specify pipe to read from
       buffer, // buffer to read from
-      sizeof(buffer), // specify the buffer's size
+      BUFFER_SIZE, // specify the buffer's size
       &cbBytes, // deref the bytes read
       NULL  // security
      );
 
-    if (!resultOfPipeRead) {
+    if (!resultOfPipeRead || cbBytes == 0) {
       printf("An error reading from the pipe\nError Code: %d\n", GetLastError());
       CloseHandle((HANDLE) pipeHandle);
+      return errorForJavaProgram;
     }
 
     CloseHandle((HANDLE) pipeHandle);
-    message = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
+    jbyteArray  message = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
     (*env)->SetByteArrayRegion(env, message, 0, (jint) cbBytes, buffer); // allocate the elements
     return message;
   } // getAnonPipeMessage
