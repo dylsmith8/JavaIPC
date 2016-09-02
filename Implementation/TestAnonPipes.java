@@ -6,15 +6,15 @@ public class TestAnonPipes {
 	public static void main (String[] args) {
 		WindowsIPC winIPC = new WindowsIPC();
 
-		byte [] data = new byte[40];
+		byte [] data = new byte[40000];
 		for (int i = 0; i < data.length; i++) data[i] = 0x02;
 
 		long time = System.nanoTime();
-		int x = winIPC.createAnonPipe(data);
+		int pipeHandle = winIPC.createAnonPipe(data);
 		long timeTaken = System.nanoTime() - time;
 		System.out.println("Time taken to create the pipe: " + timeTaken);
-		if (x != - 1) {
-			Thread t = new Thread(new AnonPipeThread(x));
+		if (pipeHandle != - 1) {
+			Thread t = new Thread(new AnonPipeThread(pipeHandle));
 			t.start();
 		}
 		else System.out.println("An error occurred");
