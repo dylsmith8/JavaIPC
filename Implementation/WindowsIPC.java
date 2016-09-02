@@ -28,7 +28,10 @@ public class WindowsIPC {
     Creates an anonymous pipe between processes.
     Return -1 if failed, 1 if sucessful
   */
-  public native int createPipe(String name);
+  public native int createAnonPipe(byte[] message);
+
+
+  public native byte[] getAnonPipeMessage(int pipeHandle);
 
   /*
     Calls CreateNamedPipe()
