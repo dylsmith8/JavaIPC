@@ -203,7 +203,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
      return -1; // out of memory
     }
     else arrLen = (*env)->GetArrayLength(env, message);
-    
+
     pipe = CreatePipe (
       &hAnonPipeRead,
       &hAnonPipeWrite,
@@ -650,7 +650,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createFileMapping
     mappedFileHandle = CreateFileMapping (
       INVALID_HANDLE_VALUE, // handle to map file. Will create later
       NULL, // default security
-      PAGE_READWRITE, // allow read/write access
+      PAGE_READWRITE, // allow read/write access (TEST WITH PAGE_READONLY!!!)
       0, // high order size of file mapping object
       BUFFER_SIZE, // low order size of file mapping object
       MEMORY_MAPPING_NAME // name of file mapping
@@ -834,7 +834,7 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
        }
        else {
          while (GetMessage (&msg, NULL, 0, 0)) {
-          TranslateMessage (&msg);
+          //TranslateMessage (&msg);
           DispatchMessage (&msg);
          }
        }
