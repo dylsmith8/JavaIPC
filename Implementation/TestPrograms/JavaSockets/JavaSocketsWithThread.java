@@ -12,8 +12,8 @@ public class JavaSocketsWithThread {
     Thread t = new Thread (new JavaSocketsThread());
     t.start();
 
-    String x = winIPC.createJavaSocketServer(PORT);
-    System.out.println("Message in Java: " + x);
+    byte [] x = winIPC.createJavaSocketServer(PORT);
+    for (int i = 0; i < x.length; i++) System.out.println("Message in Java: " + x[i]);
   } // main
 
   private static class JavaSocketsThread implements Runnable {

@@ -1,6 +1,7 @@
 /*
 	Author: Dylan Smith
 	Date: 19 August 2016
+	Last Modified: 19 October 2016
 */
 public class TestSem {
 	public static void main (String[] args) {
@@ -10,14 +11,15 @@ public class TestSem {
 		final int INIT_COUNT = 1;
 		final int MAX_COUNT = 1;
 
-	//	int x = winIPC.createSemaphore(SEM_NAME, INIT_COUNT, MAX_COUNT);
-		// should assert that x != -1
+		int x = winIPC.createSemaphore(SEM_NAME, INIT_COUNT, MAX_COUNT);
 
-		// create some threads...
-		for (int i = 0; i < 3; i++) {
-	        Thread t = new Thread(new Task(SEM_NAME));
-	        t.start();
-   		 }
+		if (x != -1) {
+			// create some threads...
+			for (int i = 0; i < 3; i++) {
+		        Thread t = new Thread(new Task(SEM_NAME));
+		        t.start();
+	    }
+		} else System.out.println("Windows semaphore failed to create");
 	}
 
 	public static void printStuff() {
@@ -31,20 +33,20 @@ public class TestSem {
 			this.semName = semName;
 		}
 
-	    public void run() {
-		//	int y = winIPC.openSemaphore(semName);
-			//int z = winIPC.waitForSingleObject(y);
+	  public void run() {
+			int y = winIPC.openSemaphore(semName);
+			int z = winIPC.waitForSingleObject(y);
 
-		//	if (z == 0) {
+			if (z == 0) {
 				printStuff();
-			//	int a = winIPC.releaseSemaphore(y, 1);
-			//	if (a == 0) System.out.println("Semaphore released successfully");
-		//		else System.out.println("Semaphore release failed");
-		//	}
-		//	else {
-			// print some error
-		//	System.out.println("An error occured..");
-		//	}
+				int a = winIPC.releaseSemaphore(y, 1);
+				if (a == 0) System.out.println("Semaphore released successfully");
+				else System.out.println("Semaphore release failed");
+			}
+			else {
+			 //print some error
+			 System.out.println("An error occured..");
+			}
 		}
   }
 }
