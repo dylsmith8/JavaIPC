@@ -2,6 +2,7 @@
  Author: Dylan Smith
  Date: 16 July 2016
  Test mailslots using Java's standard IO mechanisms
+ NOTE: delibrately fails
 */
 
  import java.io.*;
@@ -13,8 +14,6 @@
 		// create the client thread
 		Thread t = new Thread(new MailslotThread(MAILSLOT_NAME));
 	    t.start();
-
-	    
  	}
 
  	private static class MailslotThread implements Runnable {

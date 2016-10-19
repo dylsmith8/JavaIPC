@@ -1,3 +1,8 @@
+/*
+  Author: Dylan Smith
+  Date: 24 August 2016
+*/
+
 import java.io.*;
 public class TestPipesRead {
   public static void main (String[] args) {

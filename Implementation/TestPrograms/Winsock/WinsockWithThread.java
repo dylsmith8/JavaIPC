@@ -1,6 +1,7 @@
 /*
   Author: Dylan Smith
   Date: 30 June 2016
+  Last modified: 19 October 2016
 
   Simple class to test Windows Sockets 2 using a thread to act as the client
 */
@@ -12,20 +13,24 @@ public class WinsockWithThread {
     Thread t = new Thread(new WinsockThread());
     t.start();
 
-    String x = winIPC.openWinsock();
-    System.out.println("Message in Java: " + x);
+    byte [] data = winIPC.openWinsock();
+    for (int i = 0; i < data.length; i++)
+      System.out.println("Message in Java at element " + i + " :" + data[i]);
   } // main
 
   private static class WinsockThread implements Runnable {
     WindowsIPC winIPC = new WindowsIPC();
 
     public void run() {
+      byte [] data = new byte[40000];
+      for (int i = 0; i < data.length; i++) data[i] = 0x02;
       long time = System.nanoTime();
-      if (winIPC.createWinsockClient("awCGvx8YTc9HCgdovcDWawCGvx8YTc9HCgdovcDW") == 0)
-        System.out.println("Java: Client connected correctly");
-      else
-        System.out.println("Java: Client connection failed");
-      System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
+      int x = winIPC.createWinsockClient(data);
+      long timeTaken = System.nanoTime() - time;
+      System.out.println("Time to send message: "+ timeTaken + " ns");
+
+      if (x == 0) System.out.println("Java: Client connected correctly");
+      else System.out.println("Java: Client connection failed");
     } // run
   } // Winsock
 } // class

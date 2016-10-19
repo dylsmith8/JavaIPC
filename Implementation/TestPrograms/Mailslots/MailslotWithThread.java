@@ -14,10 +14,9 @@ public class MailslotWithThread {
     // start the client
     Thread t = new Thread(new MailslotThread());
     t.start();
-
-    String x = winIPC.createMailslot(MAILSLOT_NAME);
-    System.out.println("Message received on Java side: " + x);
-
+    
+    byte[] x = winIPC.createMailslot(MAILSLOT_NAME);
+    for (int i = 0; i < x.length; i++) System.out.println("Message received on Java side: " + x[i]);
 
   } // main
 
