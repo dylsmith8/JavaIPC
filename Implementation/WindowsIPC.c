@@ -1,13 +1,13 @@
 /*
   Author: Dylan Smith
   Date Created: 19 May 2016
-  Last Modified: 29 August 2016
+  Last Modified: 19 October 2016
 
   Implementation of native functions
 */
 
 #ifndef WIN32_LEAN_AND_MEAN   // Header Guard
-#define WIN32_LEAN_AND_MEAN     // speed up build process
+  #define WIN32_LEAN_AND_MEAN     // speed up build process
 #endif
 
 #ifdef _MSC_VER
@@ -162,7 +162,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
 
     // send a message
     jboolean sendMessageResult = WriteFile (
-     pipeHandle,
+      pipeHandle,
       str, // hardcoded message to send to the client
       arrLen, // length of a message
       &cbBytes,
@@ -852,12 +852,14 @@ JNIEXPORT jstring JNICALL Java_WindowsIPC_createDataCopyWindow
 JNIEXPORT jint JNICALL Java_WindowsIPC_sendDataCopyMessage
   (JNIEnv * env, jobject obj, jbyteArray message) {
 
+     jint arrLen = 0;
      jbyte *str = (*env)->GetByteArrayElements(env, message, NULL);
-     jsize arrLen = (*env)->GetArrayLength(env, message);
-     printf("Message size in bytes: %d\n", arrLen);
+     if (str == NULL) {
+       printf("Out of memory\n");
+       return -1; // out of memory
+     }
+     else arrLen = (*env)->GetArrayLength(env, message);
 
-     //LPCTSTR messageString = str;
-    // dcMessage = messageString;
      COPYDATASTRUCT cds;
      HWND hwnd;
 

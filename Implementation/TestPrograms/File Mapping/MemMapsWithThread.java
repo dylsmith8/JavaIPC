@@ -4,6 +4,7 @@
   Modified: 17 August 2016
 
   Class that tests Windows Memory Mapped Files using a threading mechanism
+  Tests that they are synchronised correctly
 */
 public class MemMapsWithThread {
   public static void main (String[] args) {
@@ -11,10 +12,10 @@ public class MemMapsWithThread {
     WindowsIPC winIPC = new WindowsIPC();
 
     for (int i = 0; i < 100; i++) {
-        Thread t = new Thread(new MemMapThread());    
+        Thread t = new Thread(new MemMapThread());
         t.start();
     }
-   
+
     final byte[]data = new byte[40];
     if (winIPC.createFileMapping(data) == 0)
       System.out.println("File mapping successfully created");
@@ -28,9 +29,10 @@ public class MemMapsWithThread {
 
     public void run() {
       long time = System.nanoTime();
-      String x = winIPC.openFileMapping();
-      System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
-      System.out.println("Message in Java: " + x);
+      byte[] x = winIPC.openFileMapping();
+      long timeTaken = System.nanoTime() - time;
+      for (int i = 0; i < x.length; i++) System.out.println("Message in Java " + x[i]);
+      System.out.println("Time to send message: "+ timeTaken + "ns");
     }
   }
 } // class

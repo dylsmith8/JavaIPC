@@ -20,5 +20,4 @@ REM run the C compiler
 REM run the java interpreter
 "C:\Program Files (x86)\Java\jdk1.7.0_79\bin\Java" WindowsIPC
 
-
 pause

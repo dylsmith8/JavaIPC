@@ -1,3 +1,9 @@
+/*
+  Author: Dylan Smith
+  Date: 10 September 2016
+
+  NOTE: delibrately will fail
+*/
 import java.io.*;
 import java.util.Scanner;
 public class NPJavaRead {

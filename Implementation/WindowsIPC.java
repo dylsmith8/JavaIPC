@@ -1,7 +1,7 @@
 /**   This class creates the Windows IPC functions using a JNI shared library
   *   Author Dylan Smith
   *   Start Date: 5 May 2016
-  *   Modified: 24 August 2016
+  *   Last Modified: 19 October 2016
   *   Follows Linux style of error reporting
   *     -1 indicates failure. 0 indicates success.
   */
@@ -30,7 +30,9 @@ public class WindowsIPC {
   */
   public native int createAnonPipe(byte[] message);
 
-
+  /*
+    Gets the message from the read-end of the Anonymous Pipe
+  */
   public native byte[] getAnonPipeMessage(int pipeHandle);
 
   /*
@@ -155,7 +157,8 @@ public class WindowsIPC {
   public native int releaseSemaphore(int handle, int incValue);
 
   /*
-  Load the native library (WindowsIPC.dll)
+    Load the native library (WindowsIPC.dll)
+    Not omission of .dll when calling the library
   */
   static {
     System.loadLibrary("WindowsIPC");
