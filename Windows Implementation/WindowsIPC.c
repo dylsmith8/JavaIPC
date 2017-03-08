@@ -1,43 +1,55 @@
 /*
   Author: Dylan Smith
   Date Created: 19 May 2016
-  Last Modified: 19 October 2016
+  Last Modified: 3 March 2017
 
   Implementation of native functions
 */
 
-#ifndef WIN32_LEAN_AND_MEAN   // Header Guard
-  #define WIN32_LEAN_AND_MEAN     // speed up build process
+// speed up build process
+#ifndef WIN32_LEAN_AND_MEAN   
+  #define WIN32_LEAN_AND_MEAN     
 #endif
 
 #ifdef _MSC_VER
  #pragma comment(lib, "user32.lib")
 #endif
 
-#include <jni.h>  // Using JNI function
-#include <stdio.h>  // C standard IO
-#include <errno.h>  // Error report functions
+// Using JNI functions
 
-#include "windows.h" // The Windows API
-#include <winsock2.h> // Using Windows Sockets
-#include <ws2tcpip.h> // Winsock 2 functions
-#include <iphlpapi.h> // IP APIs for Winsock
-#include <conio.h>  // Console IO
+#include <jni.h>  
+#include <stdio.h> 
+#include <errno.h>  
 
-#include "WindowsIPC.h" // For native methods defined in WindowsIPC.java
+// The Windows API
+#include "windows.h" 
 
-#pragma comment(lib, "Ws2_32.lib") // Winsock Libray File
-#pragma comment(lib, "user32.lib") // Include User Objects (for Data Copy)
+// Winsock 2 functions
+#include <winsock2.h> 
+#include <ws2tcpip.h> 
+#include <iphlpapi.h> 
 
-#define BUFFER_SIZE 50000 // 50K buffer size (was 1024)
-#define SOCKET_DEFAULT_PORT "27015" // Port number
+// Console IO
+#include <conio.h>  
+
+// For native methods defined in WindowsIPC.java
+#include "WindowsIPC.h" 
+
+// Winsock Libray File
+#pragma comment(lib, "Ws2_32.lib") 
+#pragma comment(lib, "user32.lib") 
+
+#define BUFFER_SIZE 50000 
+#define SOCKET_DEFAULT_PORT "27015" 
 #define LOCALHOST "127.0.0.1"
-#define MEMORY_MAPPING_NAME "JavaMemoryMap" // Global shm name
-#define SEMAPHORE_NAME "JavaSemaphore" // Global sem name
 
-const jbyte *nameOfPipe; // Global variable representing the named pipe
-const jbyte *nameMailslot; // Global variable reprenting the mailslot name
-HANDLE pipeHandle;  // Global handle for the name pipe
+// Globals
+#define MEMORY_MAPPING_NAME "JavaMemoryMap" 
+#define SEMAPHORE_NAME "JavaSemaphore"
+
+const jbyte *nameOfPipe; 
+const jbyte *nameMailslot; 
+HANDLE pipeHandle;  
 jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
