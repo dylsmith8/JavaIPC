@@ -8,3 +8,5 @@ It includes a Windows and Linux implementation with
 further work being completed on a generic IPC design.
 
 Property of Rhodes University, Grahamstown, South Africa. 
+
+Note: Pull only from **master**
