@@ -42,10 +42,26 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_getAnonPipeMessage
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeServer
- * Signature: (Ljava/lang/String;)[B
+ * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
+JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    getMessageFromServerEndOfNamedPipe
+ * Signature: (I)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_getMessageFromServerEndOfNamedPipe
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     WindowsIPC
+ * Method:    writeMessageToNamedPipeServer
+ * Signature: (I[B)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_writeMessageToNamedPipeServer
+  (JNIEnv *, jobject, jint, jbyteArray);
 
 /*
  * Class:     WindowsIPC

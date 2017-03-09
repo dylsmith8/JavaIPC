@@ -35,21 +35,15 @@
 // For native methods defined in WindowsIPC.java
 #include "WindowsIPC.h" 
 
+// Include constants 
+#include "Constants.h"
+
 // Winsock Libray File
 #pragma comment(lib, "Ws2_32.lib") 
 #pragma comment(lib, "user32.lib") 
 
-#define BUFFER_SIZE 50000 
-#define SOCKET_DEFAULT_PORT "27015" 
-#define LOCALHOST "127.0.0.1"
-
-// Globals
-#define MEMORY_MAPPING_NAME "JavaMemoryMap" 
-#define SEMAPHORE_NAME "JavaSemaphore"
-
 const jbyte *nameOfPipe; 
-const jbyte *nameMailslot; 
-HANDLE pipeHandle;  
+const jbyte *nameMailslot;  
 jstring message;
 
 HANDLE mailslotHandle; // global handle representing the mailslot
@@ -60,27 +54,18 @@ jbyte dcMessage;
  * Method:    createNamedPipeServer
  * Signature: ()I
  */
-JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
+JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeServer
   (JNIEnv * env, jobject obj, jstring pipeName) {
-
-    jbyte buffer[BUFFER_SIZE]; // Data buffer of 50 k. This will store the data that the server receives from the client
-    DWORD cbBytes; // Dytes read
-
-    jbyteArray message; // message received from client that connects
-
-    char error[60] = "Error";
-    jstring errorForJavaProgram;
-    errorForJavaProgram = (*env)->NewStringUTF(env,error);
 
     // Get the name of the pipe
     nameOfPipe = (*env)->GetStringUTFChars(env, pipeName, NULL);
 
-    pipeHandle = CreateNamedPipe (
+    HANDLE pipeHandle = CreateNamedPipe (
       nameOfPipe,                   // Name of the pipe
       PIPE_ACCESS_DUPLEX,           // Full Duplex Pipe
       PIPE_TYPE_MESSAGE |           // Message Stream
       PIPE_READMODE_MESSAGE |       // Read as Message Stream
-      PIPE_WAIT,                    // Forces a return, so thread doesn't block
+      PIPE_NOWAIT,                    // Forces a return, so thread doesn't block
       PIPE_UNLIMITED_INSTANCES,     // 255 instances
       BUFFER_SIZE,                  // Size of read/write
       BUFFER_SIZE,
@@ -91,9 +76,10 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
 
     if (pipeHandle == INVALID_HANDLE_VALUE)  {
       // error creating server
-      printf("An Error occured creating the Named Pipe\nError Code: %d\n", GetLastError());
-      return errorForJavaProgram;
+        return ERROR_FOR_JAVA_PROGRAM;
     }
+
+    /*
     else {
       printf("Server created successfully: name:%s\n", nameOfPipe);
 
@@ -130,9 +116,87 @@ JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_createNamedPipeServer
 
      message = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
      (*env)->SetByteArrayRegion(env, message, 0, (jint) cbBytes, buffer); // allocate the elements
-     return message;
+    */
+     return (jint)pipeHandle;
   }
 
+/*
+ * Class:     WindowsIPC
+ * Method:    writeMessageToNamedPipeServer
+ * Signature: (I[B)I
+ */
+JNIEXPORT jint JNICALL Java_WindowsIPC_writeMessageToNamedPipeServer
+  (JNIEnv * env, jobject obj, jint serverPipeHandle, jbyteArray message) {
+
+        DWORD cbBytes;
+        jsize messageLength;
+
+        jbyte *messageBytes = (*env)->GetByteArrayElements(env, message, NULL);
+        if (messageBytes == NULL) {
+            printf("Out of memory\n");
+            return ERROR_FOR_JAVA_PROGRAM;
+        }
+        else {
+            messageLength = (*env)->GetArrayLength(env, message);  
+        } 
+
+        jboolean sendMessageResult = WriteFile(
+            (HANDLE) serverPipeHandle,
+            messageBytes, 
+            messageLength, 
+            &cbBytes,
+            NULL
+        );
+
+        if (!sendMessageResult || cbBytes != messageLength) {
+            printf("Failed to send message to named pipe server; Error code: %d", GetLastError());
+            CloseHandle((HANDLE) serverPipeHandle);
+            (*env)->ReleaseByteArrayElements(env, message, messageBytes, JNI_ABORT);
+            return ERROR_FOR_JAVA_PROGRAM;
+        }
+
+        (*env)->ReleaseByteArrayElements(env, message, messageBytes, JNI_ABORT);
+        return 0;  
+  }
+
+/*
+ * Class:     WindowsIPC
+ * Method:    getMessageFromServerEndOfNamedPipe
+ * Signature: (I)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_WindowsIPC_getMessageFromServerEndOfNamedPipe
+  (JNIEnv * env, jobject obj, jint serverPipeHandle) {
+
+        jbyte buffer[BUFFER_SIZE];
+        DWORD cbBytes;
+        jbyteArray messageReceived;
+
+        char error[6] = "Error";
+        jstring errorForJavaProgram;       
+        errorForJavaProgram = (*env)->NewStringUTF(env,error);
+
+        jboolean resultOfPipeRead = ReadFile(
+            (HANDLE)serverPipeHandle,         // specify pipe to read from
+            buffer,             // buffer to read from
+            sizeof(buffer),     // specify the buffer's size
+            &cbBytes,           // deref the bytes read
+            NULL                // security
+        );
+
+        if (!resultOfPipeRead) {
+            printf("An error reading from the pipe\nError Code: %d\n", GetLastError());
+            CloseHandle((HANDLE)serverPipeHandle);
+            return errorForJavaProgram;
+        }
+        else {
+            CloseHandle((HANDLE)serverPipeHandle);
+        }
+        messageReceived = (*env)->NewByteArray(env, (jint) cbBytes); // create message to return
+        (*env)->SetByteArrayRegion(env, messageReceived, 0, (jint) cbBytes, buffer); // allocate the elements
+        
+        CloseHandle((HANDLE)serverPipeHandle);
+        return messageReceived;
+  }
 /*
  * Class:     WindowsIPC
  * Method:    createNamedPipeClient
@@ -155,7 +219,7 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createNamedPipeClient
     else arrLen = (*env)->GetArrayLength(env, message);
 
     // assign the pipe handle
-    pipeHandle = CreateFile(
+    HANDLE pipeHandle = CreateFile(
         "\\\\.\\Pipe\\JavaPipe", // pipe name
         GENERIC_READ | //allows read and write access
         GENERIC_WRITE,
@@ -240,7 +304,8 @@ JNIEXPORT jint JNICALL Java_WindowsIPC_createAnonPipe
       // check if message write was successful
       if (!sendMessageResult || cbBytes != arrLen) {
         printf("Failed to get send message through the anon pipe\nError code: %d", GetLastError());
-        CloseHandle(pipeHandle);
+        CloseHandle(hAnonPipeRead);
+        CloseHandle(hAnonPipeWrite);
         return -1;
       }
     }

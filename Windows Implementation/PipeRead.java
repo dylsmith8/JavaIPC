@@ -8,12 +8,10 @@ public class PipeRead {
 	public static void main (String[] args) {
 
 		WindowsIPC winIPC = new WindowsIPC();
-		byte [] data = null;
-		data = winIPC.createNamedPipeServer("\\\\.\\Pipe\\JavaPipe");
-		for (int i =0 ; i < data.length; i++) {
- 			System.out.println("Message @ elem " + i + ": " + data[i]);
-		}
+		final String PIPE_NAME = "\\\\.\\Pipe\\JavaPipe";
+		
+		int pipeHandle = winIPC.createNamedPipeServer(PIPE_NAME);
 
-		System.out.print("got here");
+		System.out.print("Pipe Handle Value: " + pipeHandle);
 	}
 }

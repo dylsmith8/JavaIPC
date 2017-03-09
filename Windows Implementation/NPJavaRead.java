@@ -12,34 +12,59 @@ public class NPJavaRead {
     final String PIPE_NAME = "\\\\.\\Pipe\\JavaPipe";
     WindowsIPC winIPC = new WindowsIPC();
 
-    Thread t = new Thread(new NamedPipeThread(PIPE_NAME));
+    int pipeHandle = winIPC.createNamedPipeServer(PIPE_NAME);
+
+    Thread t = new Thread(new NamedPipeThread(pipeHandle));
     t.start();
 
-    byte [] data = winIPC.createNamedPipeServer(PIPE_NAME);
+    byte [] messageReceived = winIPC.getMessageFromServerEndOfNamedPipe(pipeHandle);  
+    
+    System.out.println(messageReceived.length);
+    //for (int i = 0; i < messageReceived.length ; i++) {
+      //System.out.println(messageReceived[i]);
+    //}
   }
 
 private static class NamedPipeThread implements Runnable {
-    private String pipeName;
+
+    private long executionTime = 0;
+    private final int pipeHandle;
     WindowsIPC winIPC = new WindowsIPC();
-    public NamedPipeThread (String pipeName) {
-      this.pipeName = pipeName;
+
+    public NamedPipeThread (int pipeHandle) {
+      this.pipeHandle = pipeHandle;
     } // constructor
 
     public void run () {
-     try {
-  			// creates a client and deposits a message into the slot
-        byte [] data = new byte[40];
-        long time = System.nanoTime();
- 			  PrintWriter pw = new PrintWriter (new FileOutputStream (pipeName));
-        pw.println(data);
-        System.out.println("Time to send message: "+ ((System.nanoTime() - time))+ "ns");
- 	    	System.out.println("Wrote to named pipe ok");
- 	    	pw.close();
+
+			// creates a client and deposits a message into the slot
+      byte [] data = initTestData(40);
+
+      long time = System.nanoTime();
+      int sendMessageResult = winIPC.writeMessageToNamedPipeServer(pipeHandle, data);
+      executionTime = System.nanoTime() - time;
+     
+      if (sendMessageResult != -1) {
+        System.out.println("An error occured writing the data to the named pipe");
+        return;
       }
-      catch (IOException exc) {
-          System.err.println("I/O Error: " + exc);
-          exc.printStackTrace();
+      else {
+        System.out.println("data wrote successfully");
+
+        // now fetch the data
       }
+
+      executionTime = System.nanoTime() - time;
+	    	System.out.println("Time to write data: " + executionTime);
+    
     } // run
+
+    private byte[] initTestData(int arraySize) {
+      byte [] data = new byte[arraySize];
+
+      for (int i = 0; i < data.length; i++) data[i] = 0x02;
+
+      return data;
+    }
   } // inner class FIFOThread
 }

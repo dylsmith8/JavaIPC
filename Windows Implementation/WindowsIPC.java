@@ -41,7 +41,11 @@ public class WindowsIPC {
     Will wait for a client process to connect and send a message
     Returns a byte array representing the client's message
   */
-  public native byte[] createNamedPipeServer(String pipeName);
+  public native int createNamedPipeServer(String pipeName);
+
+  public native byte[] getMessageFromServerEndOfNamedPipe(int handle);
+
+  public native int writeMessageToNamedPipeServer(int pipeHandle, byte [] message);
 
   /*
     Creates a client that will connect to an existing named pipe
