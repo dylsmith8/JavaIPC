@@ -9,6 +9,7 @@ echo "Compiling Java source files..."
 cd "C:\Users\Dylan\Documents\GitHub\JavaIPC\Windows Implementation"
 "C:\Program Files (x86)\Java\jdk1.7.0_10\bin\Javac" WindowsIPC.java
 "C:\Program Files (x86)\Java\jdk1.7.0_10\bin\Javac" Helpers.java
+"C:\Program Files (x86)\Java\jdk1.7.0_10\bin\Javac" JavaSockets.java
 
 echo "Compiling and linking native library..."
 "C:\Program Files (x86)\Java\jdk1.7.0_10\bin\Javah" -jni -classpath "C:\Users\Dylan\Documents\GitHub\JavaIPC\Windows Implementation" WindowsIPC
