@@ -13,3 +13,5 @@
 
 *.log
 Windows Implementation/WindowsIPC\.lib
+
+\.vscode/
