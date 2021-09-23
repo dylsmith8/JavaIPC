@@ -1,6 +1,6 @@
-#include "../headers/windowsipc_PingJni.h"
+#include "../headers/windowsipc_BaseIpc.h"
 
-JNIEXPORT jstring JNICALL Java_windowsipc_PingJni_ping
+JNIEXPORT jstring JNICALL Java_windowsipc_BaseIpc_ping
   (JNIEnv *jvm, jobject obj, jstring pong) {
 	return pong;
 }

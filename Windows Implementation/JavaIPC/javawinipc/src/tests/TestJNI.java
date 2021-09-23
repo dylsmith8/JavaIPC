@@ -4,7 +4,7 @@ import windowsipc.*;
 public class TestJNI {
 
 	public static void main(String[] args) {
-		PingJni ipc = new PingJni();
+		BaseIpc ipc = new BaseIpc();
 		System.out.println(ipc.ping("Pong"));
 	}
 }

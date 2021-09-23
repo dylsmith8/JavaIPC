@@ -1,6 +1,6 @@
 package windowsipc;
 
-public class PingJni {
+public class BaseIpc {
 	static {
 	    System.loadLibrary("libjavawinipc_native");
 	  }
