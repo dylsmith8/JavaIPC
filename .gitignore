@@ -12,4 +12,6 @@
 *.class 
 
 *.log
+
+.*
 \.vscode/

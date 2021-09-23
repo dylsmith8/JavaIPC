@@ -23,6 +23,14 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_WindowsIPC_createMailslot
 JNIEXPORT jint JNICALL Java_windowsipc_WindowsIPC_add
   (JNIEnv *, jobject, jint, jint);
 
+/*
+ * Class:     windowsipc_WindowsIPC
+ * Method:    subtract
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_windowsipc_WindowsIPC_subtract
+  (JNIEnv *, jobject, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif
