@@ -1,11 +1,6 @@
-#include "../headers/windowsipc_WindowsIPC.h"
+#include "../headers/windowsipc_PingJni.h"
 
-JNIEXPORT jint JNICALL Java_windowsipc_WindowsIPC_add
-  (JNIEnv *jvm, jobject obj, jint x, jint y) {
-	return x + y;
-}
-
-JNIEXPORT jint JNICALL Java_windowsipc_WindowsIPC_subtract
-  (JNIEnv *jvm, jobject obj, jint x, jint y) {
-	return x - y;
+JNIEXPORT jstring JNICALL Java_windowsipc_PingJni_ping
+  (JNIEnv *jvm, jobject obj, jstring pong) {
+	return pong;
 }
