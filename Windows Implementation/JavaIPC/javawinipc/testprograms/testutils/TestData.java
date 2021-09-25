@@ -1,4 +1,4 @@
-package tests;
+package testutils;
 import java.util.Random;
 
 public class TestData {

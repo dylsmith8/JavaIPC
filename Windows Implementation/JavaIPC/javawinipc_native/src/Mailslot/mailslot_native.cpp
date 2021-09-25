@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_windowsipc_Mailslot_write
 
 	if (hFile == INVALID_HANDLE_VALUE) {
 		(env)->ReleaseStringUTFChars(name, nameMailslot);
-		Throw(env, "Could not create mailslot to write to");
+		Throw(env, "Could not create write handle");
 	}
 
 	(env)->ReleaseStringUTFChars(name, nameMailslot);

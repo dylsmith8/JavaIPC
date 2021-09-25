@@ -1,6 +1,6 @@
 package mailslots;
+import testutils.TestData;
 import windowsipc.Mailslot;
-import tests.TestData;
 
 public class MailslotTest {
 	public static void main(String[] args) {
@@ -19,6 +19,7 @@ public class MailslotTest {
 		
 		if (slotHandle > 0) {
 			TestData testDataHelper = new TestData();
+			
 			byte[] testData = testDataHelper.getTestData();
 			
 			Thread t = new Thread(new MailslotClientThread(testData, slot));
@@ -32,7 +33,8 @@ public class MailslotTest {
 				
 				slot.removeSlot(slotHandle);
 				
-				System.out.println("Mailslot result: " + result);
+				String response = result ? "Success" : "Failed";
+				System.out.println("Mailslot result: " + response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
