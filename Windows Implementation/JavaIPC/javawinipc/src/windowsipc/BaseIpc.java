@@ -6,4 +6,6 @@ public class BaseIpc {
 	  }
 	
 	public native String ping(String pong);
+	
+	public BaseIpc() {}
 }

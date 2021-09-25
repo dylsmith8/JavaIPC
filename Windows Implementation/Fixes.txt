@@ -1,0 +1,4 @@
+* Set up proper java packages
+* Split code
+* convert to C++ syntax
+* memory leaks
