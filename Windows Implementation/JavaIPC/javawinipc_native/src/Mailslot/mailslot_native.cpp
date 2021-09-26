@@ -46,7 +46,7 @@ JNIEXPORT jlong JNICALL Java_windowsipc_Mailslot_create
 	(env)->ReleaseStringUTFChars(name, nameMailslot);
 
 	if (mailslotHandle == NULL)
-		Throw(env, "Could find a name for the mailslot");
+		Throw(env, "Could not create mailslot");
 
 	// this makes me nervous...precision issues?
 	return (jlong)mailslotHandle;
@@ -93,24 +93,42 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_Mailslot_read
 	HANDLE slothandle = (HANDLE)handle;
 
 	jbyte buffer[bufferSize];
-	DWORD cbBytes;
+	DWORD cbBytes, infoMessage, numMessages;
 	jboolean result;
 
-	result = ReadFile (
+	bool mailslotInfo = GetMailslotInfo (
 		 slothandle,
-		 buffer,
-		 bufferSize,
-		 &cbBytes,
+		 NULL,
+		 &infoMessage,
+		 &numMessages,
 		 NULL
 	);
 
-	if (!result || cbBytes == 0)
-		Throw(env, "Failed to read data from mailslot");
+	if(!mailslotInfo)
+		Throw(env, "Failed to retrieve mailslot info before read attempt");
 
-	jbyteArray readData = (env)->NewByteArray(sizeof(cbBytes));
-	(env)->SetByteArrayRegion(readData, 0, sizeof(cbBytes), buffer);
+	if (infoMessage == MAILSLOT_NO_MESSAGE)
+		return NULL;
 
-	return readData;
+	if (numMessages > 0) {
+		result = ReadFile (
+		  slothandle,
+	      buffer,
+		  bufferSize,
+		  &cbBytes,
+		  NULL
+		);
+
+		if (!result || cbBytes == 0)
+			Throw(env, "Failed to read data from mailslot");
+
+		jbyteArray readData = (env)->NewByteArray(sizeof(cbBytes));
+		(env)->SetByteArrayRegion(readData, 0, sizeof(cbBytes), buffer);
+
+		return readData;
+	}
+
+	return NULL;
 }
 
 JNIEXPORT void JNICALL Java_windowsipc_Mailslot_remove

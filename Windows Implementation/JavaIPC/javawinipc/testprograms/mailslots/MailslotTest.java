@@ -1,15 +1,16 @@
 package mailslots;
-import testutils.TestData;
+import testutils.TestHelper;
 import windowsipc.Mailslot;
 
 public class MailslotTest {
 	public static void main(String[] args) {
 		final String MAILSLOT_NAME = "\\\\.\\mailslot\\javaMailslot";
 		final int BUFFER_SIZE = 50000;
-		Mailslot slot = new Mailslot(MAILSLOT_NAME, BUFFER_SIZE);
+		Mailslot slot;
 		long slotHandle;
 		
 		try {
+			slot = new Mailslot(MAILSLOT_NAME, BUFFER_SIZE);
 			slotHandle = slot.init();
 		} 
 		catch (Exception e) {
@@ -18,9 +19,7 @@ public class MailslotTest {
 		}
 		
 		if (slotHandle > 0) {
-			TestData testDataHelper = new TestData();
-			
-			byte[] testData = testDataHelper.getTestData();
+			byte[] testData = TestHelper.getTestData();
 			
 			Thread t = new Thread(new MailslotClientThread(testData, slot));
 			t.start();
@@ -29,7 +28,7 @@ public class MailslotTest {
 				t.join();
 				
 				byte[] readData = slot.read(slotHandle);
-				boolean result = testDataHelper.compareBytes(testData, readData);
+				boolean result = TestHelper.compareBytes(testData, readData);
 				
 				slot.removeSlot(slotHandle);
 				

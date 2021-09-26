@@ -1,15 +1,15 @@
 package testutils;
 import java.util.Random;
 
-public class TestData {
-	public byte[] getTestData() {
+public class TestHelper {
+	public static byte[] getTestData() {
 		byte[] bytes = new byte[20];
 		new Random().nextBytes(bytes);
 		
 		return bytes;
 	}
 	
-	public boolean compareBytes(byte[] x, byte[] y) {
+	public static boolean compareBytes(byte[] x, byte[] y) {
 		if (x.length != y.length)
 			return true;
 		
@@ -18,5 +18,5 @@ public class TestData {
 			delta |= x[i] ^ y[i];
 		
 		return delta == 0;
-	}
+	}	
 }
