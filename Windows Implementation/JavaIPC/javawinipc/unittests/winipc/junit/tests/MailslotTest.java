@@ -6,9 +6,8 @@ import windowsipc.Mailslot;
 import testutils.TestHelper;
 import java.util.UUID;
 
-public class MailslotTest {
-	@Test
-	public void mailslot_testInit() {
+public class MailslotTest {	
+	private void init_validation() {		
 		try {
 			new Mailslot("random name", -1);
 			fail("Should have failed with an exception");						
@@ -22,7 +21,9 @@ public class MailslotTest {
 		} catch (Exception e) {
 			assertEquals("A name must be specified", e.getMessage());
 		}
-		
+	}
+	
+	private void init_happy() {
 		try {
 			UUID uuid = UUID.randomUUID();
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
@@ -34,11 +35,10 @@ public class MailslotTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Should not have failed. See stacktrace.");
-		}		
+		}	
 	}
-	
-	@Test
-	public void mailslot_testWrite() {
+
+	private void write_validation() {
 		UUID uuid;
 		
 		// validation
@@ -52,10 +52,11 @@ public class MailslotTest {
 		} catch (Exception e) {
 			assertEquals("Cannot write nothing into the mailslot", e.getMessage());
 		}
-		
-		// writing to handle that's been closed
+	}
+	
+	private void write_closed_handle() {
 		try {
-			uuid = UUID.randomUUID();
+			UUID uuid = UUID.randomUUID();
 			
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
 			long handle = validSlot.init();
@@ -68,10 +69,12 @@ public class MailslotTest {
 			e.printStackTrace();
 			// windows error 0x06
 		}
-		
+	}
+	
+	private void write_happy() {
 		// happy
 		try {
-			uuid = UUID.randomUUID();
+			UUID uuid = UUID.randomUUID();
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
@@ -85,11 +88,8 @@ public class MailslotTest {
 		}
 	}
 	
-	@Test
-	public void mailslot_testRead() {
+	private void read_closed_handle() {
 		UUID uuid;
-		
-		// reading from a closed handle
 		try {
 			uuid = UUID.randomUUID();
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
@@ -107,8 +107,10 @@ public class MailslotTest {
 			e.printStackTrace();
 			// windows error 0x06			
 		}
-		
-		// reads when no data present
+	}
+	
+	private void read_data_not_present() {
+		UUID uuid;
 		try {
 			uuid = UUID.randomUUID();
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
@@ -121,8 +123,10 @@ public class MailslotTest {
 			e.printStackTrace();
 			fail("Should not have failed. See stacktrace.");
 		}
-		
-		// happy 
+	}
+	
+	private void read_happy() {
+		UUID uuid;
 		try {
 			uuid = UUID.randomUUID();
 			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
@@ -144,9 +148,72 @@ public class MailslotTest {
 			fail("Should not have failed. See stacktrace.");
 		}
 	}
+		
+	@Test
+	public void mailslot_testInit() {
+		init_validation();
+		init_happy();
+	}
+	
+	@Test
+	public void mailslot_testWrite() {
+		write_validation();
+		write_closed_handle();		
+		write_happy();
+	}
+		
+	@Test
+	public void mailslot_testRead() {
+		read_closed_handle();
+		read_data_not_present();
+		read_happy();
+	}
 
 	@Test
 	public void mailslot_testRemoveSlot() {
-		System.out.println("hellow");
+		remove_validation();
+		remove_handle_does_not_exist();
+		remove_happy();
+	}
+	private void remove_validation() {
+		try {
+			UUID uuid = UUID.randomUUID();
+			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			long handle = validSlot.init();
+			validSlot.removeSlot(handle);
+			validSlot.removeSlot(-218);
+			fail("Should have failed with an exception");
+		} catch (Exception e) {
+			assertEquals("Invalid handle", e.getMessage());			
+		}		
+	}
+	
+	private void remove_handle_does_not_exist() {
+		try {
+			UUID uuid = UUID.randomUUID();
+			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			long handle = validSlot.init();
+			assertTrue(handle >= 0);
+			validSlot.removeSlot(handle);
+			
+			validSlot.removeSlot(12345);
+			fail("Should have failed with an exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// 0x06
+		}		
+	}
+	
+	private void remove_happy() {
+		try {
+			UUID uuid = UUID.randomUUID();
+			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			long handle = validSlot.init();
+			assertTrue(handle >= 0);
+			validSlot.removeSlot(handle);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Should not have failed. See stacktrace.");			
+		}	
 	}
 }
