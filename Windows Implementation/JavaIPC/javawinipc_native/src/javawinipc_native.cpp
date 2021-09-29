@@ -2,5 +2,5 @@
 
 JNIEXPORT jstring JNICALL Java_windowsipc_BaseIpc_ping
   (JNIEnv *jvm, jobject obj, jstring pong) {
-	return pong;
+    return pong;
 }
