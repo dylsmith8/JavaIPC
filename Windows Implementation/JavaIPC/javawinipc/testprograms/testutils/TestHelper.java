@@ -2,8 +2,8 @@ package testutils;
 import java.util.Random;
 
 public class TestHelper {
-	public static byte[] getTestData() {
-		byte[] bytes = new byte[20];
+	public static byte[] getTestData(int size) {
+		byte[] bytes = new byte[size];
 		new Random().nextBytes(bytes);
 		
 		return bytes;

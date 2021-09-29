@@ -6,7 +6,14 @@ import windowsipc.Mailslot;
 import testutils.TestHelper;
 import java.util.UUID;
 
-public class MailslotTest {	
+public class MailslotTest {
+	private final int BYTE_SIZE = 424
+			;
+	private Mailslot getMailslot() throws Exception {
+		UUID uuid = UUID.randomUUID();
+		return new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+	}
+	
 	private void init_validation() {		
 		try {
 			new Mailslot("random name", -1);
@@ -25,8 +32,7 @@ public class MailslotTest {
 	
 	private void init_happy() {
 		try {
-			UUID uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
@@ -39,12 +45,8 @@ public class MailslotTest {
 	}
 
 	private void write_validation() {
-		UUID uuid;
-		
-		// validation
 		try {
-			uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			validSlot.init();
 			
 			validSlot.write(null);
@@ -56,14 +58,12 @@ public class MailslotTest {
 	
 	private void write_closed_handle() {
 		try {
-			UUID uuid = UUID.randomUUID();
-			
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			long handle = validSlot.init();
 			
 			validSlot.removeSlot(handle);
 			
-			validSlot.write(TestHelper.getTestData());
+			validSlot.write(TestHelper.getTestData(BYTE_SIZE));
 			fail("Should have failed with an exception");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -72,14 +72,12 @@ public class MailslotTest {
 	}
 	
 	private void write_happy() {
-		// happy
 		try {
-			UUID uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
 			
-			validSlot.write(TestHelper.getTestData());
+			validSlot.write(TestHelper.getTestData(BYTE_SIZE));
 			validSlot.removeSlot(handle);
 		}
 		catch (Exception e) {
@@ -89,14 +87,12 @@ public class MailslotTest {
 	}
 	
 	private void read_closed_handle() {
-		UUID uuid;
 		try {
-			uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
 			
-			byte[] testData = TestHelper.getTestData();
+			byte[] testData = TestHelper.getTestData(BYTE_SIZE);
 			
 			validSlot.write(testData);
 			validSlot.removeSlot(handle);
@@ -110,10 +106,8 @@ public class MailslotTest {
 	}
 	
 	private void read_data_not_present() {
-		UUID uuid;
 		try {
-			uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
 			
@@ -126,14 +120,12 @@ public class MailslotTest {
 	}
 	
 	private void read_happy() {
-		UUID uuid;
 		try {
-			uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
+			Mailslot validSlot = getMailslot();
 			long handle = validSlot.init();
 			assertTrue(handle >= 0);
 			
-			byte[] testData = TestHelper.getTestData();
+			byte[] testData = TestHelper.getTestData(BYTE_SIZE);
 			
 			validSlot.write(testData);
 						
@@ -148,7 +140,46 @@ public class MailslotTest {
 			fail("Should not have failed. See stacktrace.");
 		}
 	}
-		
+
+	private void remove_validation() {
+		try {
+			Mailslot validSlot = getMailslot();
+			long handle = validSlot.init();
+			validSlot.removeSlot(handle);
+			validSlot.removeSlot(-218);
+			fail("Should have failed with an exception");
+		} catch (Exception e) {
+			assertEquals("Invalid handle", e.getMessage());			
+		}		
+	}
+	
+	private void remove_handle_does_not_exist() {
+		try {
+			Mailslot validSlot = getMailslot();
+			long handle = validSlot.init();
+			assertTrue(handle >= 0);
+			validSlot.removeSlot(handle);
+			
+			validSlot.removeSlot(12345);
+			fail("Should have failed with an exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// 0x06
+		}		
+	}
+	
+	private void remove_happy() {
+		try {
+			Mailslot validSlot = getMailslot();
+			long handle = validSlot.init();
+			assertTrue(handle >= 0);
+			validSlot.removeSlot(handle);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Should not have failed. See stacktrace.");			
+		}	
+	}
+	
 	@Test
 	public void mailslot_testInit() {
 		init_validation();
@@ -174,46 +205,5 @@ public class MailslotTest {
 		remove_validation();
 		remove_handle_does_not_exist();
 		remove_happy();
-	}
-	private void remove_validation() {
-		try {
-			UUID uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
-			long handle = validSlot.init();
-			validSlot.removeSlot(handle);
-			validSlot.removeSlot(-218);
-			fail("Should have failed with an exception");
-		} catch (Exception e) {
-			assertEquals("Invalid handle", e.getMessage());			
-		}		
-	}
-	
-	private void remove_handle_does_not_exist() {
-		try {
-			UUID uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
-			long handle = validSlot.init();
-			assertTrue(handle >= 0);
-			validSlot.removeSlot(handle);
-			
-			validSlot.removeSlot(12345);
-			fail("Should have failed with an exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			// 0x06
-		}		
-	}
-	
-	private void remove_happy() {
-		try {
-			UUID uuid = UUID.randomUUID();
-			Mailslot validSlot = new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
-			long handle = validSlot.init();
-			assertTrue(handle >= 0);
-			validSlot.removeSlot(handle);			
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Should not have failed. See stacktrace.");			
-		}	
 	}
 }
