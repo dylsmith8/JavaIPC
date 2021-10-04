@@ -1,5 +1,10 @@
 ### Mailslots - rewrite
 
+### Java sockets
+1. Write: 922µs
+2. Read: 514µs
+
+The server socket is now non-blocking
 ##### init perf tests 425 bytes
 1. slot initialisation: +- 320µs
 2. slot write: +- 70µs. old: 35µs
