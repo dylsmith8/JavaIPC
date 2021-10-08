@@ -16,8 +16,19 @@ public class JavaSocket implements Closeable {
     private ServerSocketChannel _serverSocketChannel;
     
     public void initServer(String host, int port) throws IOException {
+        // lets assume my hypothetical user knows what an IP address looks like :)
+        if (host == null || host.equals(""))
+            throw new IOException("Invalid host");
+        
+        // not going to bother validating used or reserved port numbers. Maybe one day
+        if (port <= 0)
+            throw new IOException("Invalid port");    
+        
         _selector = Selector.open();
         _serverSocketChannel = ServerSocketChannel.open();
+        
+        // ignore TIME_WAIT and allow reuse
+        _serverSocketChannel.socket().setReuseAddress(true);
         InetSocketAddress inetAddress = new InetSocketAddress(host, port);
         _serverSocketChannel.bind(inetAddress);
         _serverSocketChannel.configureBlocking(false);
@@ -56,11 +67,20 @@ public class JavaSocket implements Closeable {
                 }
                 
                 iterator.remove();
-            }            
+            }      
         }
     }
     
     public void write(String host, int port, byte[] data) throws IOException {
+        if (host == null || host.equals(""))
+            throw new IOException("Invalid host");
+        
+        if (port <= 0)
+            throw new IOException("Invalid port");
+        
+        if (data == null || data.length == 0)
+            return;
+        
         InetSocketAddress inetAddress = new InetSocketAddress(host, port);
         SocketChannel writeClient = SocketChannel.open(inetAddress);
         
@@ -74,7 +94,7 @@ public class JavaSocket implements Closeable {
     public void close() throws IOException {
         if (_serverSocketChannel != null && _serverSocketChannel.isOpen()) {
             _serverSocketChannel.close();
-            _serverSocketChannel = null;            
+            _serverSocketChannel = null;
         }
     }
 }

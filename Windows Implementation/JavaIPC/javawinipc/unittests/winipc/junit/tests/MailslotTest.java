@@ -7,8 +7,8 @@ import testutils.TestHelper;
 import java.util.UUID;
 
 public class MailslotTest {
-    private final int BYTE_SIZE = 424
-            ;
+    private final int BYTE_SIZE = 424;
+    
     private Mailslot getMailslot() throws Exception {
         UUID uuid = UUID.randomUUID();
         return new Mailslot("\\\\.\\mailslot\\javaUnitTestMailslot" + uuid.toString(), 5000);
