@@ -1,16 +1,11 @@
 #include "../../headers/windowsipc_Mailslot.h"
+#include "../../headers/utilities.h"
 #include "windows.h"
 #include <jni.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string>
 #include <cstdio>
-
-void Throw(JNIEnv *env, const char *error) {
-    printf("Error Code: %d\n", GetLastError());
-    jclass exception = (env)->FindClass("java/lang/Exception");
-    env->ThrowNew(exception, error);
-}
 
 bool WriteSlot(HANDLE slotHandle, jbyte *str, long length) {
     DWORD bytesWritten;
@@ -74,8 +69,8 @@ JNIEXPORT void JNICALL Java_windowsipc_Mailslot_write
 
     jbyte *str = (env)->GetByteArrayElements(data, NULL);
 
-    bool result = WriteSlot(hFile, str, (env)->GetArrayLength(data));
-    if (!result) {
+    bool written = WriteSlot(hFile, str, (env)->GetArrayLength(data));
+    if (!written) {
         (env)->ReleaseByteArrayElements(data, str, JNI_ABORT);
         CloseHandle(hFile);
         Throw(env,"Failed to write data to the mailslot");
@@ -101,7 +96,7 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_Mailslot_read
         NULL
     );
 
-    if(!mailslotInfo)
+    if (!mailslotInfo)
         Throw(env, "Failed to retrieve mailslot info before read attempt");
 
     if (infoMessage == MAILSLOT_NO_MESSAGE)
@@ -131,6 +126,10 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_Mailslot_read
 JNIEXPORT void JNICALL Java_windowsipc_Mailslot_remove
   (JNIEnv *env, jobject obj, jlong handle) {
     HANDLE slotHandle = (HANDLE)handle;
+
+    if (slotHandle == INVALID_HANDLE_VALUE)
+            return;
+
     if (!CloseHandle(slotHandle))
         Throw(env, "Failed to close mailslot handle");
 }

@@ -1,4 +1,7 @@
 * Set up proper java packages
 * Split code
 * convert to C++ syntax
+* use g++ compiler instead of cl
 * memory leaks
+* Convert to non-blocking io if possible
+* general clean up and improvements
