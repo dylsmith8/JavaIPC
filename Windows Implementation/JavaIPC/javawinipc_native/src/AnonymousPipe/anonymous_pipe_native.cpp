@@ -96,6 +96,30 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_AnonymousPipe_read
     return readData;
 }
 
+JNIEXPORT jint JNICALL Java_windowsipc_AnonymousPipe_peek
+  (JNIEnv *env, jobject obj, jlong handle, jint bufferSize) {
+    HANDLE hPipe = (HANDLE)handle; // the read handle
+    if (hPipe == INVALID_HANDLE_VALUE)
+            Throw(env, "Cannot peek the anonymous pipe. Handle invalid. Ensure the read handle is passed.");
+
+    DWORD bytesAvailable;
+
+    // anon pipes wrap around named pipes so should be able to leverage some of its bigger brother's functions
+    bool peek = PeekNamedPipe(
+        hPipe,
+        NULL,
+        0,
+        NULL,
+        &bytesAvailable,
+        NULL
+    );
+
+    if (!peek)
+        Throw(env, "Anonymous pipe peek failed.");
+
+    return bytesAvailable;
+}
+
 JNIEXPORT void JNICALL Java_windowsipc_AnonymousPipe_closeHandle
   (JNIEnv *env, jobject obj, jlong handle) {
     HANDLE h = (HANDLE)handle;

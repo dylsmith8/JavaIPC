@@ -25,10 +25,14 @@ public class AnonymousPipesTest {
         if (readHandle > 0 && writeHandle > 0) {
             byte[] testData = TestHelper.getTestData(425);
             Thread t = new Thread(new AnonymousPipeClientThread(ap, writeHandle, testData));
+                       
             t.start();
             
             try {
                 t.join();
+                
+                int inPipe = ap.peek(readHandle);
+                System.out.println("Bytes in pipe: " + inPipe);
                 
                 ap.closeWriteHandle(writeHandle);
                 

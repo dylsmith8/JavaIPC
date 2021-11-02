@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     windowsipc_AnonymousPipe
  * Method:    create
- * Signature: (I)Lwindowsipc/AnonymousPipe/Pipe;
+ * Signature: (I)Lwindowsipc/Pipe;
  */
 JNIEXPORT jobject JNICALL Java_windowsipc_AnonymousPipe_create
   (JNIEnv *, jobject, jint);
@@ -38,6 +38,14 @@ JNIEXPORT jbyteArray JNICALL Java_windowsipc_AnonymousPipe_read
  */
 JNIEXPORT void JNICALL Java_windowsipc_AnonymousPipe_closeHandle
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     windowsipc_AnonymousPipe
+ * Method:    peek
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_windowsipc_AnonymousPipe_peek
+  (JNIEnv *, jobject, jlong, jint);
 
 #ifdef __cplusplus
 }
