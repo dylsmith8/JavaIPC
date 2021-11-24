@@ -11,7 +11,7 @@ public class AnonymousPipe {
     private native boolean write(long handle, byte[] data) throws Exception;
     private native byte[] read(long handle, int bufferSize) throws Exception;
     private native void closeHandle(long handle) throws Exception;
-    private native int peek(long handle, int bufferSize);
+    private native int peek(long handle, int bufferSize) throws Exception;
     
     public AnonymousPipe(int bufferSize) throws Exception {
         if (bufferSize <= 0)
@@ -24,11 +24,14 @@ public class AnonymousPipe {
         return create(_bufferSize);
     }
     
-    public boolean writePipe(long writeHandle, byte[] data) throws Exception {
+    public boolean writePipe(long handle, byte[] data) throws Exception {
         if (data == null || data.length == 0)
             throw new Exception("Cannot write nothing into the pipe");
         
-        return write(writeHandle, data);
+        if (handle <= 0)
+            throw new Exception("Invalid handle");
+        
+        return write(handle, data);
     }
     
     public byte[] read(long handle) throws Exception {
@@ -38,15 +41,24 @@ public class AnonymousPipe {
         return read(handle, _bufferSize);
     }
     
-    public int peek(long handle) {
+    public int peek(long handle) throws Exception {
+        if (handle <= 0)
+            throw new Exception("Invalid handle");
+        
         return peek(handle, _bufferSize);
     }
     
     public void closeReadHandle(long handle) throws Exception {
+        if (handle <= 0)
+            throw new Exception("Invalid handle");
+        
         closeHandle(handle);
     }
     
     public void closeWriteHandle(long handle) throws Exception {
+        if (handle <= 0)
+            throw new Exception("Invalid handle");
+        
         closeHandle(handle);
     }
 }
